@@ -1,0 +1,165 @@
+Classes
+    Camera
+    Scene
+    Object
+        Sphere
+        Plane
+
+Types
+    Collision (std::tuple)
+    NO_COLLISION := (???, NULL)
+
+
+MAIN
+scene_file := [Get filename from cmd-line args]
+scene := LOAD-SCENE <- scene_file
+
+pixel_data := RAYTRACE <- scene
+image := RENDER <- pixel_data
+
+DISPLAY <- image
+SAVE <- image
+
+
+LOAD-SCENE
+IN filename
+OUT scene
+
+
+RAYTRACE
+IN scene
+OUT pixel_data (2D float array)
+    camera := scene->camera
+    camera_pos := camera->pos
+    width, height := CALC-IMAGE-SIZE <-  camera->f, camera->fov, camera->a
+
+    pixel_data := float[width][height]
+
+    FOR x <- 0 TO width
+        FOR y <- 0 TO height
+            pixel_world_space := (x, y, -f) - (width/2, height/2, 0)
+            ray_dir := pixel_world_space - camera_pos
+
+            collision := FIRE-RAY(camera_pos, ray_dir, scene)
+
+            IF collision != [did not collide] THEN
+                pixel_data[pixel] := COMPUTE-COLOUR <- poi, obj, scene
+            ELSE
+                pixel_data[pixel] := background_colour
+    
+    RETURN pixel_data
+
+
+CALC-IMAGE-SIZE
+IN f, fov, a
+OUT width, height
+    fov_r := RADIANS <- fov
+    radius := f * TAN <- (fov_r / 2)
+
+    height := 2 * radius
+    width := a * height
+
+
+FIRE-RAY
+IN p0 (coordinate), d (direction vector), scene
+OUT (poi, obj) (coord-obj tuple)
+Returns the closest object & the point of intersection for a given ray
+If there is no intersection, returns [did not collide]
+    t := INFINITY
+    obj := NULL
+
+    FOR object IN scene
+        t_candidate := object.CHECK-COLLISION <- p0, d, object
+        IF t_candidate < t THEN
+            t := t_candidate
+            obj := object
+
+    IF t < INFINITY THEN
+        RETURN (p0 + dt, obj)
+    ELSE
+        RETURN [did not collide]
+
+
+Plane::CHECK-COLLISION
+SOURCE http://www.geomalgorithms.com/a05-_intersect-1.html
+IN p0, d
+OUT t
+    p1 := p0 + d
+    s1 := DOT(normal, v0 - p0) / DOT(normal, p1 - p0)
+    IF s1 >= 0 THEN
+        RETURN s1
+    ELSE
+        RETURN INFINITY
+
+
+Sphere::CHECK-COLLISION
+IN p0, d
+OUT t
+    a := 1
+    b := 2 * (d.x * (p0.x - pos.x) + d.y * (p0.y - pos.y) + d.z * (p0.z - pos.z))
+    c := (p0.x - pos.x)^2 + (p0.y - pos.y)^2 + (p0.z - pos.z)^2 - r^2
+
+    radicand := b^2 - (4 * a * c)
+    IF radicand < 0 THEN
+        t := +INFINITY
+    ELSE
+        t0 := (-b + SQRT <- radicand) / (2 * a)
+        t1 := (-b - SQRT <- radicand) / (2 * a)
+
+        IF t0 > 0 AND t1 > 0 THEN
+            t := MIN <- t0, t1
+        ELSE IF t0 <= 0 AND t1 <= 0 THEN
+            t := +INFINITY
+        ELSE IF t0 <= 0 THEN
+            t := t1
+        ELSE
+            t := t0
+
+    RETURN t
+
+
+Mesh::CHECK-COLLISION
+IN p0, d
+OUT t0
+
+
+COMPUTE-COLOUR
+IN point (coordinate), object, scene
+OUT colour
+    colour := 0
+    FOR each light in scene
+        l := NORMALIZE <- (light->pos - point)
+        poi, obj := FIRE-RAY <- point, l, scene
+
+        IF poi = [did not collide] THEN
+            phong := CALC-PHONG <- point, light, object
+            <Calculate specular reflection>
+            <Calculate specular transmission>
+            colour += phong <+ specular_ref + specular_trans>
+
+
+CALC-PHONG
+IN pos, light, object
+OUT colour
+    l := NORMALIZE <- light->pos - pos
+    n := NORMALIZE <- object.CALC-NORMAL(pos)
+    v := NORMALIZE <- -pos     // since camera is always at 0,0,0
+    r := REFLECT <- l, n
+
+    l_angle := MAX <- dot(l,n), 0
+    v_angle := MAX <- dot(r,v), 0
+
+    amb := light->amb * object->amb 
+    dif := light->dif * object->dif * l_angle
+    spe := light->spe * object->spe * (v_angle ^ object->a)
+
+    RETURN (amb + dif + spe)
+
+
+RENDER
+IN pixel_data (2D float array)
+OUT image (CImg<float>)
+
+
+DISPLAY
+IN image (CImg<float>)
