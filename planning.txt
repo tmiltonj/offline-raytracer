@@ -1,29 +1,115 @@
-Classes
-    Camera
-    Scene
-    Object
-        Sphere
-        Plane
 
-Types
-    Collision (std::tuple)
-    NO_COLLISION := (???, NULL)
+typedef glm::vec3<float> Coords
+
+struct Collision
+    object (Object*)
+    coord (Coords)
+
+const Collision NO_COLLISION { NULL, { 0.0, 0.0, 0.0 } }
+
+
+class Camera
+    pos (coordinate)
+    fov (int)
+    f   (int)
+    a   (float)
+
+
+abstract class Object
+    amb (vec3)
+    dif (vec3)
+    spe (vec3)
+    shi (float)
+    GET-NORMAL <- point
+    CHECK-COLLISION <- p0, d
+
+Plane   inherits Object
+Sphere  inherits Object
+Mesh    inherits Object
+
+
+class Light
+    pos (Coords)
+    amb (vec3)
+    dif (vec3)
+    spe (vec3)
+
+
+Scene
+    camera (Camera *)
+    List of Object*
+    List of Lights*
+
+    ~Scene: Delete Camera & entities in both Lists
 
 
 MAIN
-scene_file := [Get filename from cmd-line args]
-scene := LOAD-SCENE <- scene_file
+    scene_file := [Get filename from cmd-line args]
+    scene := LOAD-SCENE <- scene_file
 
-pixel_data := RAYTRACE <- scene
-image := RENDER <- pixel_data
+    pixel_data := RAYTRACE <- scene
+    image := RENDER <- pixel_data
 
-DISPLAY <- image
-SAVE <- image
+    DISPLAY <- image
+    SAVE <- image
 
 
 LOAD-SCENE
 IN filename
-OUT scene
+OUT scene*
+    scene := NEW Scene
+
+    TRY
+        file := OPEN filename
+        num_objects <- fscanf <- file, ...
+
+        i := 0
+        WHILE i < num_entities DO
+            entity_type := (string)fscanf <- file, ...
+            IF EOF THEN
+                THROW EXCEPTION <- "unexpected EOF"
+
+            SWITCH entity_type
+                CASE 'camera':
+                    scene->camera := PARSE-CAMERA <- file
+
+                CASE 'plane':
+                    scene->objects.PUSH-BACK <- PARSE-PLANE <- file
+
+                CASE 'sphere':
+                    scene->objects.PUSH-BACK <- PARSE-SPHERE <- file
+
+                CASE 'mesh':
+                    scene->objects.PUSH-BACK <- PARSE-MESH <- file
+
+                CASE 'light':
+                    scene->lights.PUSH-BACK <- PARSE-LIGHT <- file
+
+                DEFAULT:
+                    THROW EXCEPTION "unexpected entity type"
+
+            i++
+        ENDWHILE
+
+        CLOSE <- file
+        RETURN scene
+
+    CATCH Exception
+        CLOSE <- file
+        RETURN nullptr
+
+
+PARSE-CAMERA
+IN file (FILE*)
+OUT camera (Camera*)
+    camera := new Camera
+    IF fscanf ... != NUM_CAMERA_ARGS THEN
+        THROW EXCEPTION
+
+    RETURN camera
+
+PARSE-PLANE
+...
 
 
 RAYTRACE
@@ -31,7 +117,9 @@ IN scene
 OUT pixel_data (2D float array)
     camera := scene->camera
     camera_pos := camera->pos
-    width, height := CALC-IMAGE-SIZE <-  camera->f, camera->fov, camera->a
+    
+    height := 2 * camera->f * TAN <- (RADIANS <- camera->fov) / 2
+    width := camera->a * height
 
     pixel_data := float[width][height]
 
@@ -42,7 +130,7 @@ OUT pixel_data (2D float array)
 
             collision := FIRE-RAY(camera_pos, ray_dir, scene)
 
-            IF collision != [did not collide] THEN
+            IF collision != NO_COLLISION THEN
                 pixel_data[pixel] := COMPUTE-COLOUR <- poi, obj, scene
             ELSE
                 pixel_data[pixel] := background_colour
@@ -50,34 +138,24 @@ OUT pixel_data (2D float array)
     RETURN pixel_data
 
 
-CALC-IMAGE-SIZE
-IN f, fov, a
-OUT width, height
-    fov_r := RADIANS <- fov
-    radius := f * TAN <- (fov_r / 2)
-
-    height := 2 * radius
-    width := a * height
-
-
 FIRE-RAY
 IN p0 (coordinate), d (direction vector), scene
 OUT (poi, obj) (coord-obj tuple)
 Returns the closest object & the point of intersection for a given ray
-If there is no intersection, returns [did not collide]
+If there is no intersection, returns NO_COLLISION
     t := INFINITY
     obj := NULL
 
     FOR object IN scene
         t_candidate := object.CHECK-COLLISION <- p0, d, object
-        IF t_candidate < t THEN
+        IF t_candidate >= 0 AND t_candidate < t THEN
             t := t_candidate
             obj := object
 
     IF t < INFINITY THEN
         RETURN (p0 + dt, obj)
     ELSE
-        RETURN [did not collide]
+        RETURN NO_COLLISION
 
 
 Plane::CHECK-COLLISION
@@ -86,10 +164,7 @@ IN p0, d
 OUT t
     p1 := p0 + d
     s1 := DOT(normal, v0 - p0) / DOT(normal, p1 - p0)
-    IF s1 >= 0 THEN
-        RETURN s1
-    ELSE
-        RETURN INFINITY
+    RETURN s1
 
 
 Sphere::CHECK-COLLISION
@@ -101,19 +176,17 @@ OUT t
 
     radicand := b^2 - (4 * a * c)
     IF radicand < 0 THEN
-        t := +INFINITY
+        t := -1 // this can be an arbitrary negative value
     ELSE
         t0 := (-b + SQRT <- radicand) / (2 * a)
         t1 := (-b - SQRT <- radicand) / (2 * a)
 
-        IF t0 > 0 AND t1 > 0 THEN
-            t := MIN <- t0, t1
-        ELSE IF t0 <= 0 AND t1 <= 0 THEN
-            t := +INFINITY
-        ELSE IF t0 <= 0 THEN
+        IF t0 < 0 THEN
             t := t1
-        ELSE
+        ELSE IF t1 < 0 THEN
             t := t0
+        ELSE
+            t := MIN <- t0, t1
 
     RETURN t
 
@@ -131,7 +204,7 @@ OUT colour
         l := NORMALIZE <- (light->pos - point)
         poi, obj := FIRE-RAY <- point, l, scene
 
-        IF poi = [did not collide] THEN
+        IF poi = NO_COLLISION THEN
             phong := CALC-PHONG <- point, light, object
             <Calculate specular reflection>
             <Calculate specular transmission>
@@ -142,7 +215,7 @@ CALC-PHONG
 IN pos, light, object
 OUT colour
     l := NORMALIZE <- light->pos - pos
-    n := NORMALIZE <- object.CALC-NORMAL(pos)
+    n := NORMALIZE <- object.GET-NORMAL(pos)
     v := NORMALIZE <- -pos     // since camera is always at 0,0,0
     r := REFLECT <- l, n
 
