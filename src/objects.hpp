@@ -8,7 +8,17 @@
 
 #include <glm/glm.hpp>
 
-#include "raytracer.hpp"
+
+typedef glm::vec3 Vector;
+typedef glm::vec3 Coord;
+
+class Object;
+
+typedef struct
+{
+    std::weak_ptr<Object> obj;
+    Coord coord;
+} Collision;
 
 
 
