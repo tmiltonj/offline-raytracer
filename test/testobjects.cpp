@@ -3,11 +3,21 @@
 
 #include "objects.hpp"
 
+void test_camera();
+void test_scene();
 void test_plane();
 void test_sphere();
 
 int main()
 {
+    std::cout << "Testing Camera... ";
+    test_camera();
+    std::cout << "PASS" << std::endl;
+
+    std::cout << "Testing Scene... ";
+    test_scene();
+    std::cout << "PASS" << std::endl;
+
     std::cout << "Testing Plane... ";
     test_plane();
     std::cout << "PASS" << std::endl;
@@ -18,6 +28,82 @@ int main()
 
     return 0;
 }
+
+
+void test_camera()
+{
+    // Test constructors
+    // Invalid fov (= 0)
+    bool inst_failed = false;
+    try {
+        Camera c {
+            Coord { 1.0 },
+            0,
+            1,
+            1.33 };
+    }
+    catch (const std::invalid_argument &e){ inst_failed = true; }
+
+    assert (inst_failed);
+    
+    // Invalid f (= 0)
+    try {
+        Camera c {
+            Coord { 1.0 },
+            60,
+            0,
+            1.33 };
+    }
+    catch (const std::invalid_argument &e){ inst_failed = true; }
+
+    assert (inst_failed);
+    
+    // Invalid a (= 0.0)
+    try {
+        Camera c {
+            Coord { 1.0 },
+            60,
+            1,
+            0.0 };
+    }
+    catch (const std::invalid_argument &e){ inst_failed = true; }
+
+    assert (inst_failed);
+}
+
+
+void test_scene()
+{
+    // Test destructor and shared_ptrs are working properly
+    Scene s;
+    s.camera = std::make_shared<Camera>(
+        Coord { 0.0 },
+        60,
+        1000,
+        1.33 );
+
+    s.objects.push_back(
+        std::make_shared<Plane>(
+            Vector { 1.0 }, 
+            Coord { 1.0 },
+            glm::vec3 { 1.0 }, 
+            glm::vec3 { 1.0 }, 
+            glm::vec3 { 1.0 },
+            5.0)
+    );
+    
+    s.objects.push_back(
+        std::make_shared<Plane>(
+            Vector { 2.0 }, 
+            Coord { 2.0 },
+            glm::vec3 { 2.0 }, 
+            glm::vec3 { 2.0 }, 
+            glm::vec3 { 2.0 },
+            25.0)
+    );
+
+}
+
 
 void test_plane()
 {
@@ -97,6 +183,7 @@ void test_plane()
     assert (inst_failed);
     
 }
+
 
 void test_sphere()
 {

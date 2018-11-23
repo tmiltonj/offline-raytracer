@@ -1,11 +1,28 @@
 #ifndef __OBJECTS_HPP
 #define __OBJECTS_HPP
 
+#include <cstdio>
+#include <memory>
+#include <vector>
 #include <stdexcept>
 
 #include <glm/glm.hpp>
 
 #include "raytracer.hpp"
+
+
+
+class Camera
+{
+public:
+    Coord pos;
+    int fov, f;
+    float a;
+
+    Camera(Coord pos, int fov, int f, float a);
+};
+
+
 
 class Object
 {
@@ -20,6 +37,19 @@ private:
     glm::vec3 amb, dif, spe;
     float shi;
 };
+
+
+
+class Scene
+{
+public:
+    std::shared_ptr<Camera> camera;
+    std::vector<std::shared_ptr<Object>> objects;
+    //std::vector<std::shared_ptr<Light>> lights;
+
+    Scene();
+};
+
 
 
 class Plane : public Object
@@ -37,6 +67,7 @@ private:
 };
 
 
+
 class Sphere : public Object
 {
 public:
@@ -51,16 +82,30 @@ private:
     Coord pos;
 };
 
+
 /*
 class Mesh : public Object
 {
 
 };
 
+
+
 class Light
 {
     
 };
 */
+
+
+// FILE I/O FUNCTIONS
+std::shared_ptr<Scene> load_scene(const char *filename);
+
+Camera *parse_camera(FILE *file);
+//Plane *parse_plane(FILE* file);
+//Sphere *parse_sphere(FILE *file);
+//Mesh *parse_mesh(FILE *file);
+//Light *parse_light(FILE *file);
+
 
 #endif

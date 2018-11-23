@@ -10,10 +10,3 @@ add_executable(
     testobjects.cpp
     ../src/objects.cpp
 )
-
-add_executable(
-    testscene
-    testscene.cpp
-    ../src/scene.cpp
-    ../src/objects.cpp
-)
