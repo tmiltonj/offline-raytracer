@@ -27,15 +27,41 @@ Camera::Camera(Coord pos, int fov, int f, float a)
 
 
 
-Object::Object(glm::vec3 amb, glm::vec3 dif, glm::vec3 spe, float shi)
+bool valid_light(Vec3 L)
 {
-    if (amb.x < 0 || amb.y < 0 || amb.z < 0)
+    return (L.x >= 0.0 && L.y >= 0.0 && L.z >= 0.0);
+}
+
+
+
+Light::Light(Coord pos, Vec3 amb, Vec3 dif, Vec3 spe)
+{
+    if (!valid_light(amb))
         throw std::invalid_argument("Values of amb must be >= 0");
 
-    if (dif.x < 0 || dif.y < 0 || dif.z < 0)
+    if (!valid_light(dif))
         throw std::invalid_argument("Values of dif must be >= 0");
 
-    if (spe.x < 0 || spe.y < 0 || spe.z < 0)
+    if (!valid_light(spe))
+        throw std::invalid_argument("Values of spe must be >= 0");
+
+    this->pos = pos;
+    this->amb = amb;
+    this->dif = dif;
+    this->spe = spe;
+}
+
+
+
+Object::Object(glm::vec3 amb, glm::vec3 dif, glm::vec3 spe, float shi)
+{
+    if (!valid_light(amb))
+        throw std::invalid_argument("Values of amb must be >= 0");
+
+    if (!valid_light(dif))
+        throw std::invalid_argument("Values of dif must be >= 0");
+
+    if (!valid_light(spe))
         throw std::invalid_argument("Values of spe must be >= 0");
 
     if (shi <= 0)
@@ -50,7 +76,7 @@ Object::Object(glm::vec3 amb, glm::vec3 dif, glm::vec3 spe, float shi)
 
 
 Plane::Plane(
-    Vector normal, Coord point,
+    Vec3 normal, Coord point,
     glm::vec3 amb, glm::vec3 dif, glm::vec3 spe, float shi) :
     Object::Object(amb, dif, spe, shi)
 {
@@ -58,8 +84,8 @@ Plane::Plane(
     this->point = point;
 }
 
-Vector Plane::get_normal(Coord point){ return normal; }
-float Plane::check_collision(Coord p0, Vector d)
+Vec3 Plane::get_normal(Coord point){ return normal; }
+float Plane::check_collision(Coord p0, Vec3 d)
 {
     // To be implemented
     return 1.0;
@@ -79,13 +105,13 @@ Sphere::Sphere(
     this->r = r;
 }
 
-Vector Sphere::get_normal(Coord point)
+Vec3 Sphere::get_normal(Coord point)
 {
     // To be implemented
-    return Vector { 1.0 };
+    return Vec3 { 1.0 };
 }
 
-float Sphere::check_collision(Coord p0, Vector d)
+float Sphere::check_collision(Coord p0, Vec3 d)
 {
     // To be implemented
     return 1.0;

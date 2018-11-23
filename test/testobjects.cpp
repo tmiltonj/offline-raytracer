@@ -4,6 +4,7 @@
 #include "objects.hpp"
 
 void test_camera();
+void test_light();
 void test_scene();
 void test_plane();
 void test_sphere();
@@ -12,6 +13,10 @@ int main()
 {
     std::cout << "Testing Camera... ";
     test_camera();
+    std::cout << "PASS" << std::endl;
+    
+    std::cout << "Testing Light... ";
+    test_light();
     std::cout << "PASS" << std::endl;
 
     std::cout << "Testing Scene... ";
@@ -72,6 +77,61 @@ void test_camera()
 }
 
 
+void test_light()
+{
+    // Test valid_light
+    Vec3 v_light {  0.1 };
+    Vec3 i_light { -0.1 };
+
+    assert (valid_light(v_light));
+    assert (!valid_light(i_light));
+
+    // Test constructors
+    // Valid params
+    bool inst_failed = false;
+    try {
+        Light l {
+            Coord { 1.0 },
+            v_light, v_light, v_light
+        };
+    }
+    catch (const std::invalid_argument &e){ inst_failed = true; }
+    assert (!inst_failed);
+
+    // Invalid amb
+    inst_failed = false;
+    try {
+        Light l {
+            Coord { 1.0 },
+            i_light, v_light, v_light
+        };
+    }
+    catch (const std::invalid_argument &e){ inst_failed = true; }
+    assert (inst_failed);
+    
+    // Invalid dif
+    inst_failed = false;
+    try {
+        Light l {
+            Coord { 1.0 },
+            v_light, i_light, v_light
+        };
+    }
+    catch (const std::invalid_argument &e){ inst_failed = true; }
+    assert (inst_failed);
+    
+    // Invalid spe
+    inst_failed = false;
+    try {
+        Light l {
+            Coord { 1.0 },
+            v_light, v_light, i_light
+        };
+    }
+    catch (const std::invalid_argument &e){ inst_failed = true; }
+    assert (inst_failed);
+}
+
 void test_scene()
 {
     // Test destructor and shared_ptrs are working properly
@@ -84,7 +144,7 @@ void test_scene()
 
     s.objects.push_back(
         std::make_shared<Plane>(
-            Vector { 1.0 }, 
+            Vec3 { 1.0 }, 
             Coord { 1.0 },
             glm::vec3 { 1.0 }, 
             glm::vec3 { 1.0 }, 
@@ -94,7 +154,7 @@ void test_scene()
     
     s.objects.push_back(
         std::make_shared<Plane>(
-            Vector { 2.0 }, 
+            Vec3 { 2.0 }, 
             Coord { 2.0 },
             glm::vec3 { 2.0 }, 
             glm::vec3 { 2.0 }, 
@@ -108,7 +168,7 @@ void test_scene()
 void test_plane()
 {
     Plane p { 
-        Vector { 1.0, 2.0, 3.0 }, 
+        Vec3 { 1.0, 2.0, 3.0 }, 
         Coord { 11.0, 12.0, 13.0 },
         glm::vec3 { 21.0, 22.0, 23.0 }, 
         glm::vec3 { 31.0, 32.0, 33.0 },
@@ -116,19 +176,19 @@ void test_plane()
         5.0 };
 
     // Test get_normal
-    Vector exp_normal = Vector { 1.0, 2.0, 3.0 };
+    Vec3 exp_normal = Vec3 { 1.0, 2.0, 3.0 };
     assert (exp_normal == p.get_normal(Coord { 0.0 }));
 
     // Test check_collision
     float exp_collision = 1.0;
-    assert (exp_collision == p.check_collision(Coord { 0.0 }, Vector { 0.0 }));
+    assert (exp_collision == p.check_collision(Coord { 0.0 }, Vec3 { 0.0 }));
 
     // Test constructors
     // Invalid amb
     bool inst_failed = false;
     try {
         Plane p2 {
-            Vector { 1.0 },
+            Vec3 { 1.0 },
             Coord { 11.0 },
             glm::vec3 { -1.0, 1.0, 1.0 },
             glm::vec3 { 1.0 },
@@ -143,7 +203,7 @@ void test_plane()
     inst_failed = false;
     try {
         Plane p2 {
-            Vector { 1.0 },
+            Vec3 { 1.0 },
             Coord { 11.0 },
             glm::vec3 { 1.0 },
             glm::vec3 { 1.0, -1.0, 1.0 },
@@ -158,7 +218,7 @@ void test_plane()
     inst_failed = false;
     try {
         Plane p2 {
-            Vector { 1.0 },
+            Vec3 { 1.0 },
             Coord { 11.0 },
             glm::vec3 { 1.0 },
             glm::vec3 { 1.0 },
@@ -173,7 +233,7 @@ void test_plane()
     inst_failed = false;
     try {
         Plane p2 {
-            Vector { 1.0 },
+            Vec3 { 1.0 },
             Coord { 11.0 },
             glm::vec3 { 1.0 }, glm::vec3 { 1.0 }, glm::vec3 { 1.0 },
             0.0 };
@@ -194,12 +254,12 @@ void test_sphere()
         5.0 };
 
     // Test get_normal
-    Vector exp_normal = Vector { 1.0 };
+    Vec3 exp_normal = Vec3 { 1.0 };
     assert (exp_normal == s.get_normal(Coord { 1.0 }));
 
     // Test check_collision
     float exp_collision = 1.0;
-    assert (exp_collision == s.check_collision(Coord { 1.0 }, Vector { 1.0 }));
+    assert (exp_collision == s.check_collision(Coord { 1.0 }, Vec3 { 1.0 }));
 
     // Test instantiation
     // Invalid r

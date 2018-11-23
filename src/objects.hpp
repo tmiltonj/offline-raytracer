@@ -9,7 +9,7 @@
 #include <glm/glm.hpp>
 
 
-typedef glm::vec3 Vector;
+typedef glm::vec3 Vec3;
 typedef glm::vec3 Coord;
 
 class Object;
@@ -34,11 +34,24 @@ public:
 
 
 
+bool valid_light(Vec3 L);
+
+class Light
+{
+public:
+    Coord pos;
+    Vec3 amb, dif, spe;
+
+    Light(Coord pos, Vec3 amb, Vec3 dif, Vec3 spe);
+};
+
+
+
 class Object
 {
 public:
-    virtual Vector get_normal(Coord point) = 0;
-    virtual float check_collision(Coord p0, Vector d) = 0;
+    virtual Vec3 get_normal(Coord point) = 0;
+    virtual float check_collision(Coord p0, Vec3 d) = 0;
 
     virtual ~Object() {};
     Object(glm::vec3 amb, glm::vec3 dif, glm::vec3 spe, float shi);
@@ -55,7 +68,7 @@ class Scene
 public:
     std::shared_ptr<Camera> camera;
     std::vector<std::shared_ptr<Object>> objects;
-    //std::vector<std::shared_ptr<Light>> lights;
+    std::vector<std::shared_ptr<Light>> lights;
 
     Scene();
 };
@@ -65,14 +78,14 @@ public:
 class Plane : public Object
 {
 public:
-    Plane(Vector normal, Coord point, 
+    Plane(Vec3 normal, Coord point, 
             glm::vec3 amb, glm::vec3 dif, glm::vec3 spe, float shi);
 
-    Vector get_normal(Coord point) override;
-    float check_collision(Coord p0, Vector d) override;
+    Vec3 get_normal(Coord point) override;
+    float check_collision(Coord p0, Vec3 d) override;
 
 private:
-    Vector normal;
+    Vec3 normal;
     Coord point;
 };
 
@@ -84,8 +97,8 @@ public:
     Sphere(Coord pos, float r,
             glm::vec3 amb, glm::vec3 dif, glm::vec3 spe, float shi);
 
-    Vector get_normal(Coord point) override;
-    float check_collision(Coord p0, Vector d) override;
+    Vec3 get_normal(Coord point) override;
+    float check_collision(Coord p0, Vec3 d) override;
 
 private:
     float r;
