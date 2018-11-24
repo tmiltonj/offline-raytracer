@@ -8,7 +8,7 @@ Scene::Scene()
 
 
 
-Camera::Camera(Coord pos, int fov, int f, float a)
+Camera::Camera(Vec3 pos, int fov, int f, float a)
 {
     if (fov <= 0)
         throw std::invalid_argument("fov must be > 0");
@@ -34,7 +34,7 @@ bool valid_light(Vec3 L)
 
 
 
-Light::Light(Coord pos, Vec3 amb, Vec3 dif, Vec3 spe)
+Light::Light(Vec3 pos, Vec3 amb, Vec3 dif, Vec3 spe)
 {
     if (!valid_light(amb))
         throw std::invalid_argument("Values of amb must be >= 0");
@@ -53,7 +53,7 @@ Light::Light(Coord pos, Vec3 amb, Vec3 dif, Vec3 spe)
 
 
 
-Object::Object(glm::vec3 amb, glm::vec3 dif, glm::vec3 spe, float shi)
+Object::Object(Vec3 amb, Vec3 dif, Vec3 spe, float shi)
 {
     if (!valid_light(amb))
         throw std::invalid_argument("Values of amb must be >= 0");
@@ -76,16 +76,16 @@ Object::Object(glm::vec3 amb, glm::vec3 dif, glm::vec3 spe, float shi)
 
 
 Plane::Plane(
-    Vec3 normal, Coord point,
-    glm::vec3 amb, glm::vec3 dif, glm::vec3 spe, float shi) :
+    Vec3 normal, Vec3 point,
+    Vec3 amb, Vec3 dif, Vec3 spe, float shi) :
     Object::Object(amb, dif, spe, shi)
 {
     this->normal = normal;
     this->point = point;
 }
 
-Vec3 Plane::get_normal(Coord point){ return normal; }
-float Plane::check_collision(Coord p0, Vec3 d)
+Vec3 Plane::get_normal(Vec3 point){ return normal; }
+float Plane::check_collision(Vec3 p0, Vec3 d)
 {
     // To be implemented
     return 1.0;
@@ -94,8 +94,8 @@ float Plane::check_collision(Coord p0, Vec3 d)
 
 
 Sphere::Sphere(
-    Coord pos, float r,
-    glm::vec3 amb, glm::vec3 dif, glm::vec3 spe, float shi) :
+    Vec3 pos, float r,
+    Vec3 amb, Vec3 dif, Vec3 spe, float shi) :
     Object::Object(amb, dif, spe, shi)
 {
     if (r <= 0.0)
@@ -105,13 +105,13 @@ Sphere::Sphere(
     this->r = r;
 }
 
-Vec3 Sphere::get_normal(Coord point)
+Vec3 Sphere::get_normal(Vec3 point)
 {
     // To be implemented
     return Vec3 { 1.0 };
 }
 
-float Sphere::check_collision(Coord p0, Vec3 d)
+float Sphere::check_collision(Vec3 p0, Vec3 d)
 {
     // To be implemented
     return 1.0;

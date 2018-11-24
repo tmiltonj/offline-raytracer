@@ -54,10 +54,9 @@ public:
     virtual float check_collision(Coord p0, Vec3 d) = 0;
 
     virtual ~Object() {};
-    Object(glm::vec3 amb, glm::vec3 dif, glm::vec3 spe, float shi);
+    Object(Vec3 amb, Vec3 dif, Vec3 spe, float shi);
 
-private:
-    glm::vec3 amb, dif, spe;
+    Vec3 amb, dif, spe;
     float shi;
 };
 
@@ -79,7 +78,7 @@ class Plane : public Object
 {
 public:
     Plane(Vec3 normal, Coord point, 
-            glm::vec3 amb, glm::vec3 dif, glm::vec3 spe, float shi);
+            Vec3 amb, Vec3 dif, Vec3 spe, float shi);
 
     Vec3 get_normal(Coord point) override;
     float check_collision(Coord p0, Vec3 d) override;
@@ -95,7 +94,7 @@ class Sphere : public Object
 {
 public:
     Sphere(Coord pos, float r,
-            glm::vec3 amb, glm::vec3 dif, glm::vec3 spe, float shi);
+            Vec3 amb, Vec3 dif, Vec3 spe, float shi);
 
     Vec3 get_normal(Coord point) override;
     float check_collision(Coord p0, Vec3 d) override;
@@ -111,24 +110,7 @@ class Mesh : public Object
 {
 
 };
-
-
-
-class Light
-{
-    
-};
 */
-
-
-// FILE I/O FUNCTIONS
-std::shared_ptr<Scene> load_scene(const char *filename);
-
-Camera *parse_camera(FILE *file);
-//Plane *parse_plane(FILE* file);
-//Sphere *parse_sphere(FILE *file);
-//Mesh *parse_mesh(FILE *file);
-//Light *parse_light(FILE *file);
 
 
 #endif

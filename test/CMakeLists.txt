@@ -10,3 +10,10 @@ add_executable(
     testobjects.cpp
     ../src/objects.cpp
 )
+
+add_executable(
+    testloader
+    testloader.cpp
+    ../src/sceneloader.cpp
+    ../src/objects.cpp
+)

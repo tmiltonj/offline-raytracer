@@ -1,9 +1,9 @@
 
-typedef glm::vec3<float> Coords
+typedef Vec3<float> Vec3s
 
 struct Collision
     object (Object*)
-    coord (Coords)
+    coord (Vec3s)
 
 const Collision NO_COLLISION { NULL, { 0.0, 0.0, 0.0 } }
 
@@ -29,7 +29,7 @@ Mesh    inherits Object
 
 
 class Light
-    pos (Coords)
+    pos (Vec3s)
     amb (vec3)
     dif (vec3)
     spe (vec3)
@@ -39,8 +39,6 @@ Scene
     camera (Camera *)
     List of Object*
     List of Lights*
-
-    ~Scene: Delete Camera & entities in both Lists
 
 
 MAIN
@@ -97,6 +95,27 @@ OUT scene*
     CATCH Exception
         CLOSE <- file
         RETURN nullptr
+
+LOAD-SCENE-2
+IN filename
+OUT 
+
+
+READ-FILE
+IN filename
+OUT List of strings in file (entry = line)
+    file := OPEN filename
+    file_as_list := new list of string
+
+    IF NOT file.is_open THEN
+        RETURN file_as_list
+
+    WHILE GETLINE <- file, line THEN
+        [append next line to file_as_list]
+    ENDWHLE
+
+    RETURN file_as_list
+
 
 
 PARSE-CAMERA

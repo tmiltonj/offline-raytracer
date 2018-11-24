@@ -42,7 +42,7 @@ void test_camera()
     bool inst_failed = false;
     try {
         Camera c {
-            Coord { 1.0 },
+            Vec3 { 1.0 },
             0,
             1,
             1.33 };
@@ -54,7 +54,7 @@ void test_camera()
     // Invalid f (= 0)
     try {
         Camera c {
-            Coord { 1.0 },
+            Vec3 { 1.0 },
             60,
             0,
             1.33 };
@@ -66,7 +66,7 @@ void test_camera()
     // Invalid a (= 0.0)
     try {
         Camera c {
-            Coord { 1.0 },
+            Vec3 { 1.0 },
             60,
             1,
             0.0 };
@@ -91,7 +91,7 @@ void test_light()
     bool inst_failed = false;
     try {
         Light l {
-            Coord { 1.0 },
+            Vec3 { 1.0 },
             v_light, v_light, v_light
         };
     }
@@ -102,7 +102,7 @@ void test_light()
     inst_failed = false;
     try {
         Light l {
-            Coord { 1.0 },
+            Vec3 { 1.0 },
             i_light, v_light, v_light
         };
     }
@@ -113,7 +113,7 @@ void test_light()
     inst_failed = false;
     try {
         Light l {
-            Coord { 1.0 },
+            Vec3 { 1.0 },
             v_light, i_light, v_light
         };
     }
@@ -124,7 +124,7 @@ void test_light()
     inst_failed = false;
     try {
         Light l {
-            Coord { 1.0 },
+            Vec3 { 1.0 },
             v_light, v_light, i_light
         };
     }
@@ -137,7 +137,7 @@ void test_scene()
     // Test destructor and shared_ptrs are working properly
     Scene s;
     s.camera = std::make_shared<Camera>(
-        Coord { 0.0 },
+        Vec3 { 0.0 },
         60,
         1000,
         1.33 );
@@ -145,20 +145,20 @@ void test_scene()
     s.objects.push_back(
         std::make_shared<Plane>(
             Vec3 { 1.0 }, 
-            Coord { 1.0 },
-            glm::vec3 { 1.0 }, 
-            glm::vec3 { 1.0 }, 
-            glm::vec3 { 1.0 },
+            Vec3 { 1.0 },
+            Vec3 { 1.0 }, 
+            Vec3 { 1.0 }, 
+            Vec3 { 1.0 },
             5.0)
     );
     
     s.objects.push_back(
         std::make_shared<Plane>(
             Vec3 { 2.0 }, 
-            Coord { 2.0 },
-            glm::vec3 { 2.0 }, 
-            glm::vec3 { 2.0 }, 
-            glm::vec3 { 2.0 },
+            Vec3 { 2.0 },
+            Vec3 { 2.0 }, 
+            Vec3 { 2.0 }, 
+            Vec3 { 2.0 },
             25.0)
     );
 
@@ -169,19 +169,19 @@ void test_plane()
 {
     Plane p { 
         Vec3 { 1.0, 2.0, 3.0 }, 
-        Coord { 11.0, 12.0, 13.0 },
-        glm::vec3 { 21.0, 22.0, 23.0 }, 
-        glm::vec3 { 31.0, 32.0, 33.0 },
-        glm::vec3 { 41.0, 42.0, 43.0 },
+        Vec3 { 11.0, 12.0, 13.0 },
+        Vec3 { 21.0, 22.0, 23.0 }, 
+        Vec3 { 31.0, 32.0, 33.0 },
+        Vec3 { 41.0, 42.0, 43.0 },
         5.0 };
 
     // Test get_normal
     Vec3 exp_normal = Vec3 { 1.0, 2.0, 3.0 };
-    assert (exp_normal == p.get_normal(Coord { 0.0 }));
+    assert (exp_normal == p.get_normal(Vec3 { 0.0 }));
 
     // Test check_collision
     float exp_collision = 1.0;
-    assert (exp_collision == p.check_collision(Coord { 0.0 }, Vec3 { 0.0 }));
+    assert (exp_collision == p.check_collision(Vec3 { 0.0 }, Vec3 { 0.0 }));
 
     // Test constructors
     // Invalid amb
@@ -189,10 +189,10 @@ void test_plane()
     try {
         Plane p2 {
             Vec3 { 1.0 },
-            Coord { 11.0 },
-            glm::vec3 { -1.0, 1.0, 1.0 },
-            glm::vec3 { 1.0 },
-            glm::vec3 { 1.0 },
+            Vec3 { 11.0 },
+            Vec3 { -1.0, 1.0, 1.0 },
+            Vec3 { 1.0 },
+            Vec3 { 1.0 },
             5.0 };
     }
     catch (const std::invalid_argument &e){ inst_failed = true; }
@@ -204,10 +204,10 @@ void test_plane()
     try {
         Plane p2 {
             Vec3 { 1.0 },
-            Coord { 11.0 },
-            glm::vec3 { 1.0 },
-            glm::vec3 { 1.0, -1.0, 1.0 },
-            glm::vec3 { 1.0 },
+            Vec3 { 11.0 },
+            Vec3 { 1.0 },
+            Vec3 { 1.0, -1.0, 1.0 },
+            Vec3 { 1.0 },
             5.0 };
     }
     catch (const std::invalid_argument &e){ inst_failed = true; }
@@ -219,10 +219,10 @@ void test_plane()
     try {
         Plane p2 {
             Vec3 { 1.0 },
-            Coord { 11.0 },
-            glm::vec3 { 1.0 },
-            glm::vec3 { 1.0 },
-            glm::vec3 { 1.0, 1.0, -1.0 },
+            Vec3 { 11.0 },
+            Vec3 { 1.0 },
+            Vec3 { 1.0 },
+            Vec3 { 1.0, 1.0, -1.0 },
             5.0 };
     }
     catch (const std::invalid_argument &e){ inst_failed = true; }
@@ -234,8 +234,8 @@ void test_plane()
     try {
         Plane p2 {
             Vec3 { 1.0 },
-            Coord { 11.0 },
-            glm::vec3 { 1.0 }, glm::vec3 { 1.0 }, glm::vec3 { 1.0 },
+            Vec3 { 11.0 },
+            Vec3 { 1.0 }, Vec3 { 1.0 }, Vec3 { 1.0 },
             0.0 };
     }
     catch (const std::invalid_argument &e){ inst_failed = true; }
@@ -248,18 +248,18 @@ void test_plane()
 void test_sphere()
 {
     Sphere s {
-        Coord { 1.0 },
+        Vec3 { 1.0 },
         1.0,
-        glm::vec3 { 1.0 }, glm::vec3 { 1.0 }, glm::vec3 { 1.0 },
+        Vec3 { 1.0 }, Vec3 { 1.0 }, Vec3 { 1.0 },
         5.0 };
 
     // Test get_normal
     Vec3 exp_normal = Vec3 { 1.0 };
-    assert (exp_normal == s.get_normal(Coord { 1.0 }));
+    assert (exp_normal == s.get_normal(Vec3 { 1.0 }));
 
     // Test check_collision
     float exp_collision = 1.0;
-    assert (exp_collision == s.check_collision(Coord { 1.0 }, Vec3 { 1.0 }));
+    assert (exp_collision == s.check_collision(Vec3 { 1.0 }, Vec3 { 1.0 }));
 
     // Test instantiation
     // Invalid r
@@ -267,9 +267,9 @@ void test_sphere()
 
     try {
         Sphere s {
-            Coord { 1.0 },
+            Vec3 { 1.0 },
             0.0,
-            glm::vec3 { 1.0 }, glm::vec3 { 1.0 }, glm::vec3 { 1.0 },
+            Vec3 { 1.0 }, Vec3 { 1.0 }, Vec3 { 1.0 },
             5.0 };
     }
     catch (const std::invalid_argument &e){ inst_failed = true; }
