@@ -26,8 +26,11 @@ T line_to_single(std::string line, std::string exp_prefix)
 
     ss >> line_prefix >> t;
 
-    if (ss.fail() || line_prefix != exp_prefix)
-        throw std::invalid_argument("Could not parse; line format incorrect");
+    if (ss.fail())
+        throw std::invalid_argument("Could not parse: Line format incorrect");
+
+    if (line_prefix != exp_prefix)
+        throw std::invalid_argument("Could not parse: Invalid line prefix");
 
     return t;
 }

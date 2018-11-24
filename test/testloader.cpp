@@ -36,11 +36,9 @@ int main()
     test_line_to_single();
     std::cout << "PASS" << std::endl;
 
-    /*
     std::cout << "Testing load_scene()... ";
     test_load_scene();
     std::cout << "PASS" << std::endl;
-    */
 
     std::cout << "Testing parse_camera()... ";
     test_parse_camera();
@@ -164,6 +162,48 @@ void test_line_to_single()
     }
     catch (const std::invalid_argument &e){ inst_failed = true; }
     assert (inst_failed);
+}
+
+
+void test_load_scene()
+{
+    std::shared_ptr<Scene> sc { nullptr };
+
+    // Case 0: File does not exist / Empty file
+    bool load_failed = false;
+    try { sc = load_scene("NOT A FILE"); }
+    catch (const std::exception &e){ load_failed = true; }
+    assert (load_failed);
+
+    // Case 1: No number of objects
+    load_failed = false;
+    try { sc = load_scene("../../test/scenes/1_nocount.txt"); }
+    catch (const std::exception &e){ load_failed = true; }
+    assert (load_failed);
+
+    // Case 2: Negative number of objects
+    sc = load_scene("../../test/scenes/2_badcount.txt");
+    assert (sc->lights.size() == 0);
+    assert (sc->objects.size() == 0);
+    assert (sc->camera == nullptr);
+
+    // Case 3: Scene with 1 of each object
+    sc = load_scene("../../test/scenes/3_valid.txt");
+    assert (sc->lights.size() == 1);
+    assert (sc->objects.size() == 2);
+    assert (sc->camera != nullptr);
+
+    // Case 4: Unknown entity type
+    load_failed = false;
+    try { sc = load_scene("../../test/scenes/4_missingent.txt"); }
+    catch (const std::exception &e){ load_failed = true; }
+    assert (load_failed);
+    
+    // Case 5: Known entity with incorrect line
+    load_failed = false;
+    try { sc = load_scene("../../test/scenes/5_badent.txt"); }
+    catch (const std::exception &e){ load_failed = true; }
+    assert (load_failed);
 }
 
 

@@ -29,7 +29,7 @@ std::shared_ptr<Scene> load_scene(std::string filename)
      * from file_deck to get to the next entity name since we
      * stop and return nullptr if there are any issues parsing
      */ 
-    std::shared_ptr<Scene> scene;
+    std::shared_ptr<Scene> scene { std::make_shared<Scene>() };
 
     try
     {
@@ -51,7 +51,7 @@ std::shared_ptr<Scene> load_scene(std::string filename)
                 scene->lights.push_back(parse_light(file_deck));
             }
             else {
-                throw std::invalid_argument("Unknown entity type " + ent_type);
+                throw std::invalid_argument("Unknown entity type '" + ent_type + "'");
             }
         }
     }
@@ -72,7 +72,10 @@ std::vector<std::string> read_file(std::string filename)
     {
         std::string line;
         while (std::getline(file, line))
+        {
+            if (line.back() == '\r') line.pop_back();
             file_list.push_back(line);
+        }
 
         file.close();
     }
@@ -89,8 +92,11 @@ Vec3 line_to_vec3(std::string line, std::string exp_prefix)
 
     ss >> line_prefix >> v.x >> v.y >> v.z;
 
-    if (ss.fail() || line_prefix != exp_prefix)
-        throw std::invalid_argument("Could not parse; line format incorrect");
+    if (ss.fail())
+        throw std::invalid_argument("Could not parse; Line format incorrect");
+
+    if (line_prefix != exp_prefix)
+        throw std::invalid_argument("Could not parse; Invalid line prefix");
 
     return v;
 }

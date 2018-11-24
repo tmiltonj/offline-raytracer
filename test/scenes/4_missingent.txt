@@ -1,0 +1,25 @@
+4
+camera
+pos: 0 0 0
+fov: 60
+f: 1000
+a: 1.33
+THIS IS A BAD OBJECT TYPE
+pos: 0 6 -40
+rad: 2
+amb: 0.1 0.5 0.5
+dif: 0.4 0.6 0.2
+spe: 0.2 0.5 0.5
+shi: 1
+light
+pos: 15 12 -3
+amb: 0.8 0.8 0.8
+dif: 0.1 0.1 0.1
+spe: 0.7 0.7 0.7
+plane
+nor: 0 1 0
+pos: 0 -5 0
+amb: 0.8 0.8 0.8
+dif: 0.1 0.1 0.1
+spe: 0.7 0.7 0.7
+shi: 6
