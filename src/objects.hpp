@@ -10,14 +10,13 @@
 
 
 typedef glm::vec3 Vec3;
-typedef glm::vec3 Coord;
 
 class Object;
 
 typedef struct
 {
     std::weak_ptr<Object> obj;
-    Coord coord;
+    Vec3 coord;
 } Collision;
 
 
@@ -25,11 +24,11 @@ typedef struct
 class Camera
 {
 public:
-    Coord pos;
+    Vec3 pos;
     int fov, f;
     float a;
 
-    Camera(Coord pos, int fov, int f, float a);
+    Camera(Vec3 pos, int fov, int f, float a);
 };
 
 
@@ -39,10 +38,10 @@ bool valid_light(Vec3 L);
 class Light
 {
 public:
-    Coord pos;
+    Vec3 pos;
     Vec3 amb, dif, spe;
 
-    Light(Coord pos, Vec3 amb, Vec3 dif, Vec3 spe);
+    Light(Vec3 pos, Vec3 amb, Vec3 dif, Vec3 spe);
 };
 
 
@@ -50,8 +49,8 @@ public:
 class Object
 {
 public:
-    virtual Vec3 get_normal(Coord point) = 0;
-    virtual float check_collision(Coord p0, Vec3 d) = 0;
+    virtual Vec3 get_normal(Vec3 point) = 0;
+    virtual float check_collision(Vec3 p0, Vec3 d) = 0;
 
     virtual ~Object() {};
     Object(Vec3 amb, Vec3 dif, Vec3 spe, float shi);
@@ -77,15 +76,15 @@ public:
 class Plane : public Object
 {
 public:
-    Plane(Vec3 normal, Coord point, 
+    Plane(Vec3 normal, Vec3 point, 
             Vec3 amb, Vec3 dif, Vec3 spe, float shi);
 
-    Vec3 get_normal(Coord point) override;
-    float check_collision(Coord p0, Vec3 d) override;
+    Vec3 get_normal(Vec3 point) override;
+    float check_collision(Vec3 p0, Vec3 d) override;
 
 private:
     Vec3 normal;
-    Coord point;
+    Vec3 point;
 };
 
 
@@ -93,15 +92,15 @@ private:
 class Sphere : public Object
 {
 public:
-    Sphere(Coord pos, float r,
+    Sphere(Vec3 pos, float r,
             Vec3 amb, Vec3 dif, Vec3 spe, float shi);
 
-    Vec3 get_normal(Coord point) override;
-    float check_collision(Coord p0, Vec3 d) override;
+    Vec3 get_normal(Vec3 point) override;
+    float check_collision(Vec3 p0, Vec3 d) override;
 
 private:
     float r;
-    Coord pos;
+    Vec3 pos;
 };
 
 
