@@ -17,3 +17,11 @@ add_executable(
     ../src/sceneloader.cpp
     ../src/objects.cpp
 )
+
+add_executable(
+    testray
+    testray.cpp
+    ../src/sceneloader.cpp
+    ../src/objects.cpp
+    ../src/raytracer.cpp
+)

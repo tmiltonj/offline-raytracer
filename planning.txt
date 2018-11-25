@@ -209,6 +209,11 @@ OUT t
 
     RETURN t
 
+Sphere::CALC-NORMAL
+IN collision (Vec3)
+OUT normal (Vec3)
+
+    n := (1 / r) * (collision - pos)
 
 Mesh::CHECK-COLLISION
 IN p0, d

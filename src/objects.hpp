@@ -13,11 +13,16 @@ typedef glm::vec3 Vec3;
 
 class Object;
 
-typedef struct
+struct Collision
 {
     std::shared_ptr<Object> obj;
     Vec3 coord;
-} Collision;
+
+    bool operator==(const Collision &c) const
+    {
+        return (obj == c.obj && coord == c.coord);
+    }
+};
 
 const Collision NO_COLLISION { nullptr, Vec3 { 0.0 } };
 
