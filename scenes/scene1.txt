@@ -1,17 +1,9 @@
-7
+6
 camera
 pos: 0 0 0
 fov: 60
 f: 1000
 a: 1.33
-triangle
-v1: 1 7 -30
-v2: 1 5 -30
-v3: 5 6 -30
-amb: 0.5 0.2 0.7
-dif: 0.2 0.4 0.2
-spe: 0.1 0.7 0.2
-shi: 0.5
 sphere
 pos: 0 6 -40
 rad: 2
@@ -35,7 +27,9 @@ spe: 0.2 0.7 0.8
 shi: 1
 light
 pos: 15 12 -3
-col: 0.3 0.9 0.9
+amb: 0.3 0.9 0.9
+dif: 0.3 0.9 0.9
+spe: 0.3 0.9 0.9
 plane
 nor: 0 1 0
 pos: 0 -5 0
