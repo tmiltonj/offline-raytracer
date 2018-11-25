@@ -41,7 +41,7 @@ void test_raytrace()
 
     // Only for B&W rendering
     assert (abs(px_data[exp_width / 2][exp_height / 2]) < EPSILON);
-    assert (abs(px_data[exp_width / 2][exp_height - 10] - 1.0) < EPSILON);
+    assert (abs(px_data[exp_width / 2][10] - 1.0) < EPSILON);
 }
 
 

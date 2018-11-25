@@ -26,8 +26,6 @@ struct Collision
 
 const Collision NO_COLLISION { nullptr, Vec3 { 0.0 } };
 
-const Collision NO_COLLISION { nullptr, Vec3 { 0.0 } };
-
 
 
 class Camera
