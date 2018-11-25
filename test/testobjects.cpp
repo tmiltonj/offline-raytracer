@@ -1,6 +1,8 @@
 #include <assert.h>
 #include <iostream>
 
+#include <glm/glm.hpp>
+
 #include "objects.hpp"
 
 void test_camera();
@@ -273,8 +275,21 @@ void test_sphere()
         5.0 };
 
     // Test get_normal
-    Vec3 exp_normal = Vec3 { 1.0 };
-    assert (exp_normal == s.get_normal(Vec3 { 1.0 }));
+    // Case 1: on the surface of the sphere
+    assert ((s.get_normal(Vec3 { 2.0, 1.0, 1.0 }) == Vec3 { 1.0, 0.0, 0.0 }));
+
+    // Case 2: off the surface
+    Vec3 exp_normal { (1.0 / 3.0), (2.0 / 3.0), (2.0 / 3.0) };
+    Vec3 act_normal = s.get_normal(Vec3 { 2.0, 3.0, 3.0 });
+    
+    assert (exp_normal == act_normal);
+
+    // Case 3: at sphere's position (0-length normal)
+    exp_normal = Vec3 { 0.0 };
+    act_normal = s.get_normal(Vec3 { 1.0 });
+
+    assert (exp_normal == act_normal);
+
 
     // Test check_collision
     // Case 1: Collision on top point of the sphere, in front

@@ -111,11 +111,12 @@ Sphere::Sphere(
     this->r = r;
 }
 
+
 Vec3 Sphere::get_normal(Vec3 point)
 {
-    // To be implemented
-    return Vec3 { 1.0 };
+    return (point != pos) ? glm::normalize(point - pos) : Vec3 { 0.0 };
 }
+
 
 float Sphere::check_collision(Vec3 p0, Vec3 d)
 {
