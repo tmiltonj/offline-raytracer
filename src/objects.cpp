@@ -1,5 +1,9 @@
 #include "objects.hpp"
 
+
+const float BIAS { 0.1f };
+
+
 Scene::Scene()
 {
     camera = nullptr;
@@ -126,11 +130,12 @@ float Sphere::check_collision(Vec3 p0, Vec3 d)
     b = 2.0 * (d.x * p_dif.x + d.y * p_dif.y + d.z * p_dif.z);
     c = pow(p_dif.x, 2.0) + pow(p_dif.y, 2.0) + pow(p_dif.z, 2.0) - pow(r, 2.0);
 
-    float t, t0, t1, sqrt_rad;
-    radicand = pow(b, 2) - (4.0 * a * c);
-    if (radicand < 0)
+    float t, t0, t1;
+    double sqrt_rad;
+    radicand = pow(b, 2.0) - (4.0 * a * c);
+    if (radicand < 0.0)
     {
-        t = -1.0; // TODO: Replace with a constant
+        t = -1000.0; // TODO: Replace with a constant
     }
     else
     {
@@ -138,11 +143,11 @@ float Sphere::check_collision(Vec3 p0, Vec3 d)
         t0 = (-b + sqrt_rad) / 2.0;
         t1 = (-b - sqrt_rad) / 2.0;
 
-        if (t0 < 0) {
+        if (t0 + BIAS < 0.0) {
             // t0 is behind the ray
             t = t1;
         }
-        else if (t1 < 0) {
+        else if (t1 + BIAS < 0.0) {
             // t1 is behind the ray
             t = t0;
         }
@@ -154,12 +159,3 @@ float Sphere::check_collision(Vec3 p0, Vec3 d)
 
     return t;
 }
-
-
-std::shared_ptr<Scene> load_scene(const char *filename)
-{
-    std::shared_ptr<Scene> scene(std::make_shared<Scene>());
-
-    return scene;
-}
-

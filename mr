@@ -1,6 +1,6 @@
 #!/bin/sh
 cd build/
-cmake ..
-make
-cd ../bin/
+cmake .. &&
+make &&
+cd ../bin/ &&
 ./$1

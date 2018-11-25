@@ -30,10 +30,13 @@ int main()
     for (int x = 0; x < width; x++) {
         for (int y = 0; y < height; y++) {
             for (int z = 0; z < NUM_CHANNELS; z++) {
-                image(x, y, z) = px_data[x][y] * 255.0f;
+                image(x, y, z) = px_data[x][y][z] * 255.0f;
             }
         }
     }
+
+
+    image.save("render.bmp");
 
 
     cimg_library::CImgDisplay main_disp { image, "Render" };
