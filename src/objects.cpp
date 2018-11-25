@@ -85,10 +85,16 @@ Plane::Plane(
 }
 
 Vec3 Plane::get_normal(Vec3 point){ return normal; }
+
+// http://www.geomalgorithms.com/a05-_intersect-1.html
 float Plane::check_collision(Vec3 p0, Vec3 d)
 {
-    // To be implemented
-    return 1.0;
+    // TODO: Replace -1 w/ constant
+    // if n.d = 0, the ray is perpendicular to the plane
+    if (glm::dot(normal, d) == 0){ return -1; }
+
+    Vec3 p1 { p0 + d };
+    return { glm::dot(normal, point - p0) / glm::dot(normal, p1 - p0) };
 }
 
 
@@ -113,8 +119,39 @@ Vec3 Sphere::get_normal(Vec3 point)
 
 float Sphere::check_collision(Vec3 p0, Vec3 d)
 {
-    // To be implemented
-    return 1.0;
+    Vec3 p_dif { p0 - pos };
+    float a, b, c, radicand;
+    a = 1.0;
+    b = 2.0 * (d.x * p_dif.x + d.y * p_dif.y + d.z * p_dif.z);
+    c = pow(p_dif.x, 2.0) + pow(p_dif.y, 2.0) + pow(p_dif.z, 2.0) - pow(r, 2.0);
+
+    float t, t0, t1, sqrt_rad;
+    radicand = pow(b, 2) - (4.0 * a * c);
+    if (radicand < 0)
+    {
+        t = -1.0; // TODO: Replace with a constant
+    }
+    else
+    {
+        sqrt_rad = sqrt(radicand);
+        t0 = (-b + sqrt_rad) / 2.0;
+        t1 = (-b - sqrt_rad) / 2.0;
+
+        if (t0 < 0) {
+            // t0 is behind the ray
+            t = t1;
+        }
+        else if (t1 < 0) {
+            // t1 is behind the ray
+            t = t0;
+        }
+        else {
+            // Both are in front, find the closest
+            t = fmin(t0, t1);
+        }
+    }
+
+    return t;
 }
 
 

@@ -15,9 +15,11 @@ class Object;
 
 typedef struct
 {
-    std::weak_ptr<Object> obj;
+    std::shared_ptr<Object> obj;
     Vec3 coord;
 } Collision;
+
+const Collision NO_COLLISION { nullptr, Vec3 { 0.0 } };
 
 
 

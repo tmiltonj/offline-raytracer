@@ -180,9 +180,28 @@ void test_plane()
     assert (exp_normal == p.get_normal(Vec3 { 0.0 }));
 
     // Test check_collision
-    float exp_collision = 1.0;
-    assert (exp_collision == p.check_collision(Vec3 { 0.0 }, Vec3 { 0.0 }));
+    Plane p2 {
+        Vec3 { 0, 1, 0 }, // normal
+        Vec3 { 1, 1, 1 }, // point on plane
+        Vec3 { 0.0 }, Vec3 { 0.0 }, Vec3 { 0.0 }, 1.0
+    };
 
+    // Case 1: 45-degree ray collides with plane
+    Vec3 p0 { 1, 2, 1 };
+    Vec3 d0 { 1, -1, 0 };
+    float col_result = p2.check_collision(p0, d0);
+    assert ( (p0 + d0 * col_result) == (Vec3 { 2, 1, 1 }) );
+
+    // Case 2: Ray fired in opposite direction, no collision
+    Vec3 d1 { 1, 2, 0 };
+    col_result = p2.check_collision(p0, d1);
+    assert ( (col_result - (-0.5)) < 0.01 ); // col_result < 0.0
+
+    // Case 3: Ray is perpendicular to plane, no collision
+    Vec3 d2 { 1, 0, -1 };
+    col_result = p2.check_collision(p0, d2);
+    assert (col_result < 0.0);
+    
     // Test constructors
     // Invalid amb
     bool inst_failed = false;
@@ -258,8 +277,45 @@ void test_sphere()
     assert (exp_normal == s.get_normal(Vec3 { 1.0 }));
 
     // Test check_collision
-    float exp_collision = 1.0;
-    assert (exp_collision == s.check_collision(Vec3 { 1.0 }, Vec3 { 1.0 }));
+    // Case 1: Collision on top point of the sphere, in front
+    Sphere s2 {
+        Vec3 { 3.0, 1.0, 3.0 }, // pos
+        1.0, // r
+        Vec3 { 1.0 }, Vec3 { 1.0 }, Vec3 { 1.0 }, 5.0 };
+
+    Vec3 p0 { 1, 2, 3 };
+    Vec3 d  { 1, 0, 0 };
+
+    float col_result = s2.check_collision(p0, d);
+    assert ( (p0 + d * col_result == Vec3 { 3, 2, 3}) );
+
+    // Case 2: Collision in middle of sphere, in front
+    Sphere s3 {
+        Vec3 { 4.0, 2.0, 3.0 }, // pos
+        2.0, // r
+        Vec3 { 1.0 }, Vec3 { 1.0 }, Vec3 { 1.0 }, 5.0 };
+
+    col_result = s3.check_collision(p0, d);
+    assert ( (p0 + d * col_result == Vec3 { 2, 2, 3}) );
+
+    // Case 3: Sphere is behind the ray, no collision
+    Sphere s4 {
+        Vec3 { -4.0, 2.0, 3.0 }, // pos
+        2.0, // r
+        Vec3 { 1.0 }, Vec3 { 1.0 }, Vec3 { 1.0 }, 5.0 };
+
+    col_result = s4.check_collision(p0, d);
+    assert (col_result < 0.0);
+
+    // Case 4: Sphere is in front of the ray, but not in the way of the ray
+    Sphere s5 {
+        Vec3 { 4.0, 5.0, 5.0 }, // pos
+        2.0, // r
+        Vec3 { 1.0 }, Vec3 { 1.0 }, Vec3 { 1.0 }, 5.0 };
+
+    col_result = s5.check_collision(p0, d);
+    assert (col_result < 0.0);
+
 
     // Test instantiation
     // Invalid r
