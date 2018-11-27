@@ -116,6 +116,7 @@ class Mesh : public Object
 {
 public:
     Mesh(std::string filename, Vec3 amb, Vec3 dif, Vec3 spe, float shi);
+    Mesh(std::vector<Vec3> vertices, Vec3 amb, Vec3 dif, Vec3 spe, float shi);
 
     Vec3 get_normal(Vec3 point) override;
     float check_collision(Vec3 p0, Vec3 d) override;
@@ -124,7 +125,7 @@ private:
     std::vector<Vec3> vertices, normals;
     std::vector<glm::vec2> uvs;
 
-    Vec3 last_col_normal;
+    Vec3 last_col_normal, normal;
 };
 
 

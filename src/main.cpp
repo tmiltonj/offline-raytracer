@@ -9,12 +9,18 @@
 
 
 const int NUM_CHANNELS { 3 };
+const int NUM_ARGS { 1 };
 
 
-int main()
+int main(int argc, char *argv[])
 {
+    if (argc < NUM_ARGS + 1)
+        return 1;
+
+    std::string scene_file { argv[1] };
+    
     std::shared_ptr<Scene> sc { 
-        load_scene("../scenes/scene2.txt") 
+        load_scene(scene_file)
         };
 
 

@@ -5,8 +5,9 @@
 
 
 const Vec3 BACKGROUND_COLOUR { 0.0 };
+const float GLOBAL_AMBIENCE { 0.2 };
 
-const float BIAS { 0.02f };
+const float BIAS { 0.1f };
 
 
 Float2D raytrace(std::shared_ptr<Scene> scene, int &width, int &height)
@@ -91,17 +92,19 @@ Vec3 compute_color(Collision col, std::shared_ptr<Scene> scene)
 {
     Vec3 color, l, phong;
     color = Vec3 { 0.0 };
+    //color = GLOBAL_AMBIENCE * col.obj->amb;
     
     std::shared_ptr<Light> light;
     Collision shadow_col;
     for (unsigned int i = 0; i < scene->lights.size(); i++)
     {
         light = scene->lights[i];
-        l = glm::normalize(light->pos - col.coord);
+        l = light->pos - col.coord;
 
-        shadow_col = fire_ray(col.coord, l, scene);
+        shadow_col = fire_ray(col.coord, glm::normalize(l), scene);
+        color += light->amb * col.obj->amb;
 
-        if (shadow_col == NO_COLLISION)
+        if (shadow_col == NO_COLLISION || glm::length(l) < glm::length(col.coord - shadow_col.coord))
         {
             phong = calc_phong(light, col.obj, col.coord);
             color += phong;
@@ -109,6 +112,7 @@ Vec3 compute_color(Collision col, std::shared_ptr<Scene> scene)
     }
 
     return Vec3 { fmin(color.x, 1.0), fmin(color.y, 1.0), fmin(color.z, 1.0) };
+    //return color;
 }
 
 
@@ -117,8 +121,8 @@ Vec3 calc_phong(std::shared_ptr<Light> light, std::shared_ptr<Object> obj, Vec3 
 {
     Vec3 l, n, v, r;
     l = glm::normalize(light->pos - pos);
-    n = obj->get_normal(pos);
-    v = glm::normalize(-pos); // Since camera is always at 0,0,0 (LAZY)
+    n = glm::normalize(obj->get_normal(pos));
+    v = glm::normalize(pos); // Since camera is always at 0,0,0 (LAZY)
     r = glm::reflect(l, n);
 
     float l_angle, v_angle;
@@ -130,5 +134,5 @@ Vec3 calc_phong(std::shared_ptr<Light> light, std::shared_ptr<Object> obj, Vec3 
     dif = light->dif * obj->dif * l_angle;
     spe = light->spe * obj->spe * (float)pow(v_angle, obj->shi);
 
-    return (amb + dif + spe);
+    return (dif + spe);
 }

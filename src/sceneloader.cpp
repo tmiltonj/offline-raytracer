@@ -50,6 +50,12 @@ std::shared_ptr<Scene> load_scene(std::string filename)
             else if (ent_type == "light") {
                 scene->lights.push_back(parse_light(file_deck));
             }
+            else if (ent_type == "mesh") {
+                scene->objects.push_back(parse_mesh(file_deck));
+            }
+            else if (ent_type == "triangle") {
+                scene->objects.push_back(parse_triangle(file_deck));
+            }
             else {
                 throw std::invalid_argument("Unknown entity type '" + ent_type + "'");
             }
@@ -126,6 +132,7 @@ std::shared_ptr<Camera> parse_camera(std::deque<std::string> &file_deck)
 }
 
 
+
 std::shared_ptr<Plane> parse_plane(std::deque<std::string> &file_deck)
 {
     try
@@ -141,6 +148,7 @@ std::shared_ptr<Plane> parse_plane(std::deque<std::string> &file_deck)
     }
     catch (const std::invalid_argument &e){ throw e; }   
 }
+
 
 
 std::shared_ptr<Sphere> parse_sphere(std::deque<std::string> &file_deck)
@@ -159,7 +167,48 @@ std::shared_ptr<Sphere> parse_sphere(std::deque<std::string> &file_deck)
     catch (const std::invalid_argument &e){ throw e; }   
 }
 
-//std::shared_ptr<Mesh> parse_mesh(std::deque<std::string> &file_deck);
+
+
+std::shared_ptr<Mesh> parse_mesh(std::deque<std::string> &file_deck)
+{
+    try
+    {
+        std::string filename { pop(file_deck) };
+
+        Vec3 amb, dif, spe;
+        amb = Vec3 { line_to_vec3(pop(file_deck), "amb:") };
+        dif = Vec3 { line_to_vec3(pop(file_deck), "dif:") };
+        spe = Vec3 { line_to_vec3(pop(file_deck), "spe:") };
+        float shi { line_to_single<float>(pop(file_deck), "shi:") };
+
+        return std::make_shared<Mesh>(filename, amb, dif, spe, shi);
+    }
+    catch (const std::invalid_argument &e){ throw e; }
+}
+
+
+
+std::shared_ptr<Mesh> parse_triangle(std::deque<std::string> &file_deck)
+{
+    try
+    {
+        std::vector<Vec3> vertices;
+        vertices.push_back(line_to_vec3(pop(file_deck), "v1:"));
+        vertices.push_back(line_to_vec3(pop(file_deck), "v2:"));
+        vertices.push_back(line_to_vec3(pop(file_deck), "v3:"));
+
+        Vec3 amb, dif, spe;
+        amb = Vec3 { line_to_vec3(pop(file_deck), "amb:") };
+        dif = Vec3 { line_to_vec3(pop(file_deck), "dif:") };
+        spe = Vec3 { line_to_vec3(pop(file_deck), "spe:") };
+        float shi { line_to_single<float>(pop(file_deck), "shi:") };
+
+        return std::make_shared<Mesh>(vertices, amb, dif, spe, shi);
+    }
+    catch (const std::invalid_argument &e){ throw e; }
+}
+
+
 
 std::shared_ptr<Light> parse_light(std::deque<std::string> &file_deck)
 {
