@@ -44,7 +44,8 @@ Vec3 line_to_vec3(std::string line, std::string exp_prefix);
 std::shared_ptr<Camera> parse_camera(std::deque<std::string> &file_deck);
 std::shared_ptr<Plane> parse_plane(std::deque<std::string> &file_deck);
 std::shared_ptr<Sphere> parse_sphere(std::deque<std::string> &file_deck);
-//std::shared_ptr<Mesh> parse_mesh(std::deque<std::string> &file_deck);
+std::shared_ptr<Mesh> parse_mesh(std::deque<std::string> &file_deck);
+std::shared_ptr<Mesh> parse_triangle(std::deque<std::string> &file_deck);
 std::shared_ptr<Light> parse_light(std::deque<std::string> &file_deck);
 
 #endif

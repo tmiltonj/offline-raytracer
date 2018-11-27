@@ -377,4 +377,31 @@ void test_mesh()
     // Case 2: No collision
     float t { m.check_collision(p0, Vec3 { 0.0, 1.0, 0.0 }) };
     assert (t < 0);
+
+
+    // Testing alternate constructor
+    /*
+    std::vector<Vec3> tri_verts { 
+        Vec3 { -15.0, 20.0, -35.0 },
+        Vec3 { -15.0, 0.0, -35.0 },
+        Vec3 { 10.0, 10.0, -20.0 }
+    };
+
+    Mesh m2 {
+        tri_verts,
+        Vec3 { 1.0 }, Vec3 { 1.0 }, Vec3 { 1.0 }, 5.0
+    };
+
+    exp_collision = Vec3 { -2.5, 10.0, -27.5 };
+    d = glm::normalize(exp_collision - p0);
+    t = m2.check_collision(p0, d);
+    act_collision = p0 + d * t;
+
+    std::cout << "\n" << act_collision.x << "\n";
+    std::cout << act_collision.y << "\n";
+    std::cout << act_collision.z << "\n";
+
+    assert (glm::length(act_collision - exp_collision) < EPSILON);
+    */
+
 }

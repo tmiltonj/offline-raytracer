@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "objects.hpp"
 #include "objloader.hpp"
 
@@ -177,7 +179,33 @@ Object::Object(amb, dif, spe, shi)
 
 
 
-Vec3 Mesh::get_normal(Vec3 point){ return last_col_normal; }
+Mesh::Mesh(std::vector<Vec3> vertices, Vec3 amb, Vec3 dif, Vec3 spe, float shi) :
+Object::Object(amb, dif, spe, shi)
+{
+    last_col_normal = Vec3 { 0.0 };
+    if (vertices.size() % 3 == 0)
+    {
+        this->vertices = std::vector<Vec3>{ vertices };
+
+        Vec3 v[3];
+        v[0] = vertices[0];
+        v[1] = vertices[1];
+        v[2] = vertices[2];
+
+        Vec3 u, w;
+        u = v[1] - v[0];
+        w = v[2] - v[0];
+        normal = glm::cross(u, w);
+    }
+
+}
+
+
+
+Vec3 Mesh::get_normal(Vec3 point)
+{ 
+    return normal; 
+}
 
 
 
@@ -190,7 +218,7 @@ float Mesh::check_collision(Vec3 p0, Vec3 d)
     float denom, uu, vv, uv, wv, wu;
     float t_plane_col, s_tri_col, t_tri_col;
 
-    for (int i = 0; i < vertices.size(); i += 3)
+    for (unsigned int i = 0; i < vertices.size(); i += 3)
     {
         vertex[0] = vertices[i];
         vertex[1] = vertices[i+1];
@@ -204,30 +232,31 @@ float Mesh::check_collision(Vec3 p0, Vec3 d)
         p1 = p0 + d;
         t_plane_col = glm::dot(normal, vertex[0] - p0) / glm::dot(normal, p1 - p0);
 
-        if (t_plane_col > 0.0)
+        if (t_plane_col > 0.0 && t_plane_col < t0)
         {
             p_col = p0 + d * t_plane_col;
-            w = p1 - vertex[0];
+            w = p_col - vertex[0];
 
             uu = glm::dot(u, u);
             vv = glm::dot(v, v);
             uv = glm::dot(u, v);
             wv = glm::dot(w, v);
             wu = glm::dot(w, u);
-            denom = pow(glm::dot(u, v), 2.0) - (uu * vv);
+            denom = (uv * uv) - (uu * vv);
 
             s_tri_col = (uv * wv - vv * wu) / denom;
             t_tri_col = (uv * wu - uu * wv) / denom;
 
             if (s_tri_col >= 0 && t_tri_col >= 0 && (s_tri_col + t_tri_col) <= 1)
             {
-                if (t_plane_col < t0) {
-                    t0 = t_plane_col;
-                    last_col_normal = normal;
-                }
+                t0 = t_plane_col;
+                last_col_normal = normal;
             }
         }
     }
 
-    return (t0 < std::numeric_limits<float>::infinity() ? t0 : -1.0);
+    if (t0 < std::numeric_limits<float>::infinity())
+        return t0;
+    else
+        return -1.0;
 }
