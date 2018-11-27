@@ -5,11 +5,14 @@
 
 #include "objects.hpp"
 
+const float EPSILON = 0.01;
+
 void test_camera();
 void test_light();
 void test_scene();
 void test_plane();
 void test_sphere();
+void test_mesh();
 
 int main()
 {
@@ -31,6 +34,10 @@ int main()
 
     std::cout << "Testing Sphere... ";
     test_sphere();
+    std::cout << "PASS" << std::endl;
+
+    std::cout << "Testing Mesh... ";
+    test_mesh();
     std::cout << "PASS" << std::endl;
 
     return 0;
@@ -346,4 +353,28 @@ void test_sphere()
     catch (const std::invalid_argument &e){ inst_failed = true; }
 
     assert (inst_failed);
+}
+
+
+
+void test_mesh()
+{
+    Mesh m { 
+        "../../test/scenes/cube.obj",
+        Vec3 { 1.0 }, Vec3 { 1.0 }, Vec3 { 1.0 }, 5.0
+        };
+
+    // Test check_collision
+    // Case 1: Intersect at front-right corner
+    Vec3 p0, d, exp_collision, act_collision;
+    p0 = Vec3 { 0.0, 0.0, 0.0 };
+    exp_collision = Vec3 { 1.0, 1.0, -38.0 };
+    d = glm::normalize(exp_collision - p0);
+    act_collision = p0 + d * m.check_collision(p0, d);
+
+    assert (glm::length(act_collision - exp_collision) < EPSILON);
+
+    // Case 2: No collision
+    float t { m.check_collision(p0, Vec3 { 0.0, 1.0, 0.0 }) };
+    assert (t < 0);
 }

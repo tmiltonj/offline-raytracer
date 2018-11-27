@@ -209,15 +209,63 @@ OUT t
 
     RETURN t
 
+
 Sphere::CALC-NORMAL
 IN collision (Vec3)
 OUT normal (Vec3)
 
     n := (1 / r) * (collision - pos)
 
+
+Mesh::CALC-NORMAL
+IN collision (Vec3)
+OUT normal (Vec3)
+    RETURN last_col_normal
+
+
 Mesh::CHECK-COLLISION
 IN p0, d
 OUT t0
+    t0 := infinity
+
+    FOR i <- 0 TO vertices.size CBY 3
+        [Test plane intersection]
+        v0, v1, v2 := vertices of triangle
+        u := v1 - v0
+        v := v2 - v0
+
+        normal := CROSS <- u, v
+
+        p1 := p0 + d
+        s1 := DOT(normal, v0 - p0) / DOT(normal, p1 - p0)
+
+        IF s1 > 0 THEN
+            [Test if p0 + dt is inside triangle]
+            p1 := p0 + d*s1
+            w := p1 - v0
+
+            uu := DOT <- u, u
+            vv := DOT <- v, v
+            uv := DOT <- u, v
+            wv := DOT <- w, v
+            wu := DOT <- w, u
+            denom := (DOT <- u, v)^2 - uu * vv
+
+            s1 := (uv * wv - vv * wu) / denom
+            t1 := (uv * wu - uu * wv) / denom
+
+            IF s1 >= 0 AND t1 >= 0 AND (s1 + t1) <= 1 THEN
+                IF t1 < t0
+                    t0 := t1
+                    last_col_normal <- normal
+        ENDIF
+    ENDFOR
+
+    IF t0 < infinity
+        RETURN t0
+    ELSE
+        RETURN -1
+
 
 
 COMPUTE-COLOUR

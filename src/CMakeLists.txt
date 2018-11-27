@@ -6,6 +6,7 @@ add_executable(
     objects.cpp
     raytracer.cpp
     sceneloader.cpp
+    objloader.cpp
     )
     
 find_package(X11 REQUIRED)

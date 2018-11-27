@@ -1,4 +1,5 @@
 #include "objects.hpp"
+#include "objloader.hpp"
 
 
 const float BIAS { 0.1f };
@@ -158,4 +159,75 @@ float Sphere::check_collision(Vec3 p0, Vec3 d)
     }
 
     return t;
+}
+
+
+
+Mesh::Mesh(std::string filename, Vec3 amb, Vec3 dif, Vec3 spe, float shi) :
+Object::Object(amb, dif, spe, shi)
+{
+    last_col_normal = Vec3 { 0.0 };
+
+    std::vector<int> indices;
+    if (!loadOBJ(filename, vertices, normals, uvs, indices))
+    {
+        throw std::invalid_argument("Invalid input file");
+    }
+}
+
+
+
+Vec3 Mesh::get_normal(Vec3 point){ return last_col_normal; }
+
+
+
+float Mesh::check_collision(Vec3 p0, Vec3 d)
+{
+    float t0 { std::numeric_limits<float>::infinity() };
+
+    Vec3 vertex[3];
+    Vec3 u, v, w, normal, p1, p_col;
+    float denom, uu, vv, uv, wv, wu;
+    float t_plane_col, s_tri_col, t_tri_col;
+
+    for (int i = 0; i < vertices.size(); i += 3)
+    {
+        vertex[0] = vertices[i];
+        vertex[1] = vertices[i+1];
+        vertex[2] = vertices[i+2];
+
+        u = vertex[1] - vertex[0];
+        v = vertex[2] - vertex[0];
+
+        normal = glm::cross(u, v);
+
+        p1 = p0 + d;
+        t_plane_col = glm::dot(normal, vertex[0] - p0) / glm::dot(normal, p1 - p0);
+
+        if (t_plane_col > 0.0)
+        {
+            p_col = p0 + d * t_plane_col;
+            w = p1 - vertex[0];
+
+            uu = glm::dot(u, u);
+            vv = glm::dot(v, v);
+            uv = glm::dot(u, v);
+            wv = glm::dot(w, v);
+            wu = glm::dot(w, u);
+            denom = pow(glm::dot(u, v), 2.0) - (uu * vv);
+
+            s_tri_col = (uv * wv - vv * wu) / denom;
+            t_tri_col = (uv * wu - uu * wv) / denom;
+
+            if (s_tri_col >= 0 && t_tri_col >= 0 && (s_tri_col + t_tri_col) <= 1)
+            {
+                if (t_plane_col < t0) {
+                    t0 = t_plane_col;
+                    last_col_normal = normal;
+                }
+            }
+        }
+    }
+
+    return (t0 < std::numeric_limits<float>::infinity() ? t0 : -1.0);
 }
