@@ -6,11 +6,12 @@
 
 const Vec3 BACKGROUND_COLOUR { 0.0 };
 const float GLOBAL_AMBIENCE { 0.2 };
+const float SPECULARITY { 0.3 };
 
 const float BIAS { 0.1f };
 
 
-Float2D raytrace(std::shared_ptr<Scene> scene, int &width, int &height)
+Pixel2D raytrace(std::shared_ptr<Scene> scene, int &width, int &height, int recursion_level)
 {
     std::shared_ptr<Camera> cam { scene->camera };
     Vec3 cam_pos { cam->pos };
@@ -22,9 +23,9 @@ Float2D raytrace(std::shared_ptr<Scene> scene, int &width, int &height)
     width = ceil(cam->a * height);
 
     // Initialize pixels
-    Float2D px_data { new Float1D[width] };
+    Pixel2D px_data { new Pixel1D[width] };
     for (int i = 0; i < width; i++)
-        px_data[i] = Float1D(new Vec3[height]);
+        px_data[i] = Pixel1D(new Vec3[height]);
 
     // Fire ray for each pixel
     Collision col;
@@ -46,7 +47,7 @@ Float2D raytrace(std::shared_ptr<Scene> scene, int &width, int &height)
             }
             else
             {
-                px_data[x][y] = compute_color(col, scene);
+                px_data[x][y] = compute_color(col, scene, cam_pos, recursion_level);
             }
         }
     }
@@ -88,7 +89,7 @@ Collision fire_ray(Vec3 p0, Vec3 d, std::shared_ptr<Scene> scene)
 }
 
 
-Vec3 compute_color(Collision col, std::shared_ptr<Scene> scene)
+Vec3 compute_color(Collision col, std::shared_ptr<Scene> scene, Vec3 view_pos, int rec_depth)
 {
     Vec3 color, l, phong;
     color = Vec3 { 0.0 };
@@ -106,8 +107,24 @@ Vec3 compute_color(Collision col, std::shared_ptr<Scene> scene)
 
         if (shadow_col == NO_COLLISION || glm::length(l) < glm::length(col.coord - shadow_col.coord))
         {
-            phong = calc_phong(light, col.obj, col.coord);
-            color += phong;
+            phong = calc_phong(light, col.obj, col.coord, view_pos);
+            Vec3 r, specular_ref;
+            specular_ref = Vec3 { 0.0 };
+            if (rec_depth > 0)
+            {
+                r = Vec3 { glm::reflect(l, glm::normalize(col.obj->get_normal(col.coord))) };                
+                Collision spec_col { fire_ray(col.coord, r, scene) };
+                if (spec_col == NO_COLLISION)
+                {
+                    specular_ref = (specular_ref == Vec3{ 0.0 }) ? BACKGROUND_COLOUR : specular_ref;
+                }
+                else
+                {
+                    specular_ref = compute_color(spec_col, scene, col.coord, rec_depth - 1);
+                }
+            }
+            
+            color += phong + (SPECULARITY * col.obj->spe * specular_ref);
         }
     }
 
@@ -117,12 +134,12 @@ Vec3 compute_color(Collision col, std::shared_ptr<Scene> scene)
 
 
 // TODO: Pass in l to avoid another call to normalize + vector subtraction
-Vec3 calc_phong(std::shared_ptr<Light> light, std::shared_ptr<Object> obj, Vec3 pos)
+Vec3 calc_phong(std::shared_ptr<Light> light, std::shared_ptr<Object> obj, Vec3 pos, Vec3 view_pos)
 {
     Vec3 l, n, v, r;
     l = glm::normalize(light->pos - pos);
     n = glm::normalize(obj->get_normal(pos));
-    v = glm::normalize(pos); // Since camera is always at 0,0,0 (LAZY)
+    v = glm::normalize(view_pos - pos);
     r = glm::reflect(l, n);
 
     float l_angle, v_angle;

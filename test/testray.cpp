@@ -34,7 +34,7 @@ void test_raytrace()
     exp_width = 1537;
     exp_height = 1155;
     
-    Float2D px_data { raytrace(sc, width, height) };
+    Pixel2D px_data { raytrace(sc, width, height, 0) };
 
     assert (exp_height == height);
     assert (exp_width == width);

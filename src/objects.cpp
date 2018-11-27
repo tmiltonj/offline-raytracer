@@ -195,7 +195,7 @@ Object::Object(amb, dif, spe, shi)
         Vec3 u, w;
         u = v[1] - v[0];
         w = v[2] - v[0];
-        normal = glm::cross(u, w);
+        last_col_normal = glm::cross(u, w);
     }
 
 }
@@ -204,7 +204,7 @@ Object::Object(amb, dif, spe, shi)
 
 Vec3 Mesh::get_normal(Vec3 point)
 { 
-    return normal; 
+    return last_col_normal; 
 }
 
 

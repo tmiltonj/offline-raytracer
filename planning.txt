@@ -132,7 +132,7 @@ PARSE-PLANE
 
 
 RAYTRACE
-IN scene
+IN scene, width, height, recursion_depth
 OUT pixel_data (2D float array)
     camera := scene->camera
     camera_pos := camera->pos
@@ -150,7 +150,7 @@ OUT pixel_data (2D float array)
             collision := FIRE-RAY(camera_pos, ray_dir, scene)
 
             IF collision != NO_COLLISION THEN
-                pixel_data[pixel] := COMPUTE-COLOUR <- poi, obj, scene
+                pixel_data[pixel] := COMPUTE-COLOUR-REC <- poi, obj, scene, recursion_depth
             ELSE
                 pixel_data[pixel] := background_colour
     
@@ -268,8 +268,8 @@ OUT t0
 
 
 
-COMPUTE-COLOUR
-IN point (coordinate), object, scene
+COMPUTE-COLOUR-REC
+IN point (coordinate), object, scene, depth
 OUT colour
     colour := 0
     FOR each light in scene
@@ -277,18 +277,29 @@ OUT colour
         poi, obj := FIRE-RAY <- point, l, scene
 
         IF poi = NO_COLLISION THEN
-            phong := CALC-PHONG <- point, light, object
-            <Calculate specular reflection>
+            phong := CALC-PHONG <- point, light, object, scene->camera
+
+            IF depth > 0 THEN
+                r := REFLECT <- l, NORMALIZE <-(object.CALC-NORMAL <- point)
+                specular_ref := Vec3 { 0.0 }
+                collision := FIRE-RAY <- point, r, scene
+                IF collision != NO_COLLISION THEN
+                    specular_ref += COMPUTE-COLOUR-REC <- collision point, col.object, scene, depth - 1
+                ELSE
+                    specular_ref := (specular_ref == 0.0) ? BACKGROUND_COLOUR : specular_ref
+            ENDIF
+
             <Calculate specular transmission>
-            colour += phong <+ specular_ref + specular_trans>
+
+            colour += phong + (obj->specular * specular_ref) <+ specular_trans>
 
 
 CALC-PHONG
-IN pos, light, object
+IN pos, light, object, view
 OUT colour
     l := NORMALIZE <- light->pos - pos
     n := NORMALIZE <- object.GET-NORMAL(pos)
-    v := NORMALIZE <- -pos     // since camera is always at 0,0,0
+    v := NORMALIZE <- view->pos - pos
     r := REFLECT <- l, n
 
     l_angle := MAX <- dot(l,n), 0
