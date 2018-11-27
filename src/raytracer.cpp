@@ -11,7 +11,8 @@ const float SPECULARITY { 0.3 };
 const float BIAS { 0.1f };
 
 
-Pixel2D raytrace(std::shared_ptr<Scene> scene, int &width, int &height, int recursion_level)
+Pixel2D raytrace(std::shared_ptr<Scene> scene, int &width, int &height, 
+                    int recursion_level, int ssample_div)
 {
     std::shared_ptr<Camera> cam { scene->camera };
     Vec3 cam_pos { cam->pos };
@@ -31,24 +32,34 @@ Pixel2D raytrace(std::shared_ptr<Scene> scene, int &width, int &height, int recu
     Collision col;
     Vec3 px_screen_space, px_world_space, px_offset, ray_dir;
     px_offset = Vec3 { width / 2, -height / 2, 0 };
+    
+    ssample_div = (ssample_div < 1) ? 1 : ssample_div;
+    float ssample_step { 1.0f / ssample_div };
+
     for (int x = 0; x < width; x++)
     {
         for (int y = 0; y < height; y++)
         {
-            px_screen_space = Vec3 { x, -y, -cam_f };
-            px_world_space = px_screen_space - px_offset;
-            ray_dir = glm::normalize(px_world_space - cam_pos);
-
-            col = fire_ray(cam_pos, ray_dir, scene);
-
-            if (col == NO_COLLISION)
+            px_data[x][y] = Vec3 { 0.0 };
+            for (int i = 0; i < ssample_div; i++)
             {
-                px_data[x][y] = BACKGROUND_COLOUR;
+                for (int j = 0; j < ssample_div; j++)
+                {
+                    px_screen_space = Vec3 { x + i * ssample_step, -y + j * ssample_step, -cam_f };
+                    px_world_space = px_screen_space - px_offset;
+                    ray_dir = glm::normalize(px_world_space - cam_pos);
+
+                    col = fire_ray(cam_pos, ray_dir, scene);
+
+                    if (col == NO_COLLISION) {
+                        px_data[x][y] += BACKGROUND_COLOUR;
+                    }
+                    else {
+                        px_data[x][y] += compute_color(col, scene, cam_pos, recursion_level);
+                    }
+                }
             }
-            else
-            {
-                px_data[x][y] = compute_color(col, scene, cam_pos, recursion_level);
-            }
+            px_data[x][y] = px_data[x][y] / (float)(ssample_div * ssample_div);
         }
     }
 

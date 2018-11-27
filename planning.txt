@@ -132,7 +132,7 @@ PARSE-PLANE
 
 
 RAYTRACE
-IN scene, width, height, recursion_depth
+IN scene, width, height, recursion_depth, ssample_div
 OUT pixel_data (2D float array)
     camera := scene->camera
     camera_pos := camera->pos
@@ -142,17 +142,24 @@ OUT pixel_data (2D float array)
 
     pixel_data := float[width][height]
 
+    ssample_div = max(1, ssample_div)
+    ssample_step := 1 / ssample_div
+
     FOR x <- 0 TO width
         FOR y <- 0 TO height
-            pixel_world_space := (x, y, -f) - (width/2, height/2, 0)
-            ray_dir := pixel_world_space - camera_pos
+            FOR i <- 0 TO ssample_div
+                FOR j <- 0 TO ssample_div
+                    pixel_world_space := Vec3 { x + i * ssample_step, y + j * ssample_step, -f } - (width/2, height/2, 0)
+                    ray_dir := pixel_world_space - camera_pos
 
-            collision := FIRE-RAY(camera_pos, ray_dir, scene)
+                    collision := FIRE-RAY(camera_pos, ray_dir, scene)
 
-            IF collision != NO_COLLISION THEN
-                pixel_data[pixel] := COMPUTE-COLOUR-REC <- poi, obj, scene, recursion_depth
-            ELSE
-                pixel_data[pixel] := background_colour
+                    IF collision != NO_COLLISION THEN
+                        pixel_data[pixel] += COMPUTE-COLOUR-REC <- poi, obj, scene, recursion_depth
+                    ELSE
+                        pixel_data[pixel] += background_colour
+
+            pixel_data[pixel] = pixel_data[pixel] * ( 1 / (ssample_div * ssample_div))
     
     RETURN pixel_data
 
