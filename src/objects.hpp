@@ -13,6 +13,8 @@ typedef glm::vec3 Vec3;
 
 class Object;
 
+
+// Info about where & which object a ray collides against
 struct Collision
 {
     std::shared_ptr<Object> obj;
@@ -24,8 +26,8 @@ struct Collision
     }
 };
 
+// Arbitrary values for when a ray does not intersect an object
 const Collision NO_COLLISION { nullptr, Vec3 { 0.0 } };
-
 
 
 class Camera
@@ -42,6 +44,8 @@ public:
 
 bool valid_light(Vec3 L);
 
+
+
 class Light
 {
 public:
@@ -49,11 +53,13 @@ public:
     Vec3 amb, dif, spe;
 
     Light(Vec3 pos, Vec3 amb, Vec3 dif, Vec3 spe);
-    void soften(Vec3 l, Vec3 v, int num_shadows, std::vector<std::shared_ptr<Light>> &area_light);
 };
 
 
 
+/*
+ * Parent class for all primitives in the program
+ */
 class Object
 {
 public:

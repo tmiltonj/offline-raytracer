@@ -1,4 +1,5 @@
 #include <iostream>
+#include <limits>
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtc/constants.hpp>
@@ -8,18 +9,29 @@
 #include "objloader.hpp"
 
 
-const float AREA_LIGHT_SPREAD { 0.5f };
+// Reduces shadow acne caused by floating-point precision errors
 const float BIAS { 0.1f };
 
+// Arbitrary values for when a ray does not intersect an object
+const float NO_INTERSECT { -std::numeric_limits<float>::max() };
 
+
+
+/* Scene
+ * Has exactly 1 camera and a list of Objects and Lights
+ */
 Scene::Scene()
 {
     camera = nullptr;
-    objects = std::vector<std::shared_ptr<Object>>();
+    objects = std::vector<std::shared_ptr<Object>>{};
+    lights = std::vector<std::shared_ptr<Light>>{};
 }
 
 
 
+/* Camera
+ * fov, f and a must be non-negative to be valid
+ */
 Camera::Camera(Vec3 pos, int fov, int f, float a)
 {
     if (fov <= 0)
@@ -39,6 +51,7 @@ Camera::Camera(Vec3 pos, int fov, int f, float a)
 
 
 
+// Helper function to ensure all light values are non-negative
 bool valid_light(Vec3 L)
 {
     return (L.x >= 0.0 && L.y >= 0.0 && L.z >= 0.0);
@@ -61,25 +74,6 @@ Light::Light(Vec3 pos, Vec3 amb, Vec3 dif, Vec3 spe)
     this->amb = amb;
     this->dif = dif;
     this->spe = spe;
-}
-
-
-
-void Light::soften(Vec3 l, Vec3 v, int num_shadows, std::vector<std::shared_ptr<Light>> &area_lights)
-{
-    //std::vector<std::shared_ptr<Light>> area_lights;
-
-    Vec3 norm { glm::normalize(glm::cross(l, v)) * (AREA_LIGHT_SPREAD / num_shadows) };
-    float rotation { 2.0f * glm::pi<float>() / num_shadows };
-    for (int i = 0; i < num_shadows; i++)
-    {
-        area_lights.push_back(
-            std::make_shared<Light>(
-                pos + norm, amb / (float)num_shadows, dif / (float)num_shadows, spe / (float)num_shadows
-            ));
-
-        norm = glm::rotate(norm, rotation, l) + glm::normalize(norm) * (AREA_LIGHT_SPREAD / num_shadows);
-    }
 }
 
 
@@ -115,14 +109,20 @@ Plane::Plane(
     this->point = point;
 }
 
+
 Vec3 Plane::get_normal(Vec3 point){ return normal; }
 
-// http://www.geomalgorithms.com/a05-_intersect-1.html
+
+
+/* Ray-Plane Collision
+ * Algorithm adapted from http://www.geomalgorithms.com/a05-_intersect-1.html
+ * Returns t where p0 + dt is a point on the plane
+ * Return a negative value if there is no collision
+ */
 float Plane::check_collision(Vec3 p0, Vec3 d)
 {
-    // TODO: Replace -1 w/ constant
     // if n.d = 0, the ray is perpendicular to the plane
-    if (glm::dot(normal, d) == 0){ return -1; }
+    if (glm::dot(normal, d) == 0){ return NO_INTERSECT; }
 
     Vec3 p1 { p0 + d };
     return { glm::dot(normal, point - p0) / glm::dot(normal, p1 - p0) };
@@ -143,14 +143,25 @@ Sphere::Sphere(
 }
 
 
+/* Sphere normal calculation
+ * Adapted from COMP371 Lecture 13
+ * point doesn't need to be on the surface of the sphere to work
+ */
 Vec3 Sphere::get_normal(Vec3 point)
 {
     return (point != pos) ? glm::normalize(point - pos) : Vec3 { 0.0 };
 }
 
 
+
+/* Sphere-Ray collision
+ * Adapted from COMP371 Lecture 13
+ * Returns the closest intersection of the ray p0 + dt with the sphere
+ * Returns a negative value if there is no intersection
+ */
 float Sphere::check_collision(Vec3 p0, Vec3 d)
 {
+    // Solve for intersections using the quadtratic equation
     Vec3 p_dif { p0 - pos };
     float a, b, c, radicand;
     a = 1.0;
@@ -160,9 +171,10 @@ float Sphere::check_collision(Vec3 p0, Vec3 d)
     float t, t0, t1;
     double sqrt_rad;
     radicand = pow(b, 2.0) - (4.0 * a * c);
+    // There is no collision if radicand < 0.0, sqrt(radicand) will be a complex number
     if (radicand < 0.0)
     {
-        t = -1000.0; // TODO: Replace with a constant
+        t = NO_INTERSECT;
     }
     else
     {
@@ -189,6 +201,7 @@ float Sphere::check_collision(Vec3 p0, Vec3 d)
 
 
 
+// Constructs a Mesh from a given .obj file
 Mesh::Mesh(std::string filename, Vec3 amb, Vec3 dif, Vec3 spe, float shi) :
 Object::Object(amb, dif, spe, shi)
 {
@@ -203,6 +216,7 @@ Object::Object(amb, dif, spe, shi)
 
 
 
+// Constructs a Mesh from a vertex list, used to make triangles
 Mesh::Mesh(std::vector<Vec3> vertices, Vec3 amb, Vec3 dif, Vec3 spe, float shi) :
 Object::Object(amb, dif, spe, shi)
 {
@@ -226,6 +240,9 @@ Object::Object(amb, dif, spe, shi)
 
 
 
+/* Mesh's normal is updated when a collision is checked for, this saves us from needing to
+ * recalculate the normal again
+ */
 Vec3 Mesh::get_normal(Vec3 point)
 { 
     return last_col_normal; 
@@ -233,6 +250,12 @@ Vec3 Mesh::get_normal(Vec3 point)
 
 
 
+/* Mesh-Ray collision
+ * Adapted from: http://geomalgorithms.com/a06-_intersect-2.html
+ * 
+ * Tests for collision against every triangle constructed from the vertex list
+ * Updates the normal at the collision position for future get_normal checks
+ */
 float Mesh::check_collision(Vec3 p0, Vec3 d)
 {
     float t0 { std::numeric_limits<float>::infinity() };
@@ -244,6 +267,7 @@ float Mesh::check_collision(Vec3 p0, Vec3 d)
 
     for (unsigned int i = 0; i < vertices.size(); i += 3)
     {
+        // Construct a triangle from the next 3 vertices
         vertex[0] = vertices[i];
         vertex[1] = vertices[i+1];
         vertex[2] = vertices[i+2];
@@ -253,11 +277,14 @@ float Mesh::check_collision(Vec3 p0, Vec3 d)
 
         normal = glm::cross(u, v);
 
+        // Test Ray-Plane intersection for the plane of the triangle
         p1 = p0 + d;
         t_plane_col = glm::dot(normal, vertex[0] - p0) / glm::dot(normal, p1 - p0);
 
         if (t_plane_col > 0.0 && t_plane_col < t0)
         {
+            // We intersect with the plane, use a modified version of Moller-Trumbore algorithm
+            // to test for intersection with a triangle in 3d
             p_col = p0 + d * t_plane_col;
             w = p_col - vertex[0];
 
@@ -271,6 +298,7 @@ float Mesh::check_collision(Vec3 p0, Vec3 d)
             s_tri_col = (uv * wv - vv * wu) / denom;
             t_tri_col = (uv * wu - uu * wv) / denom;
 
+            // Collision if s, t >= 0 and s + t <= 1
             if (s_tri_col >= 0 && t_tri_col >= 0 && (s_tri_col + t_tri_col) <= 1)
             {
                 t0 = t_plane_col;
@@ -279,8 +307,5 @@ float Mesh::check_collision(Vec3 p0, Vec3 d)
         }
     }
 
-    if (t0 < std::numeric_limits<float>::infinity())
-        return t0;
-    else
-        return -1.0;
+    return (t0 < std::numeric_limits<float>::infinity()) ? t0 : NO_INTERSECT;
 }
