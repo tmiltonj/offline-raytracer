@@ -12,6 +12,7 @@ const int NUM_CHANNELS { 3 };
 const int MIN_ARGS { 1 };
 const int DEFAULT_RECURSION_LEVEL { 0 };
 const int DEFAULT_SSAMPLE_LEVEL { 1 };
+const int DEFAULT_SOFT_SHADOWS { 1 };
 
 
 int main(int argc, char *argv[])
@@ -44,6 +45,18 @@ int main(int argc, char *argv[])
         catch (const std::invalid_argument &e){}
         catch (const std::out_of_range &e){}
     }
+
+
+    int sshadow_level { DEFAULT_SOFT_SHADOWS };
+    if (argc > 4)
+    {
+        try {
+            sshadow_level = std::stoi(argv[4]);
+            std::cout << "Setting number of soft shadows to " << sshadow_level << std::endl;
+        }
+        catch (const std::invalid_argument &e){}
+        catch (const std::out_of_range &e){}
+    }
    
     
     try 
@@ -51,7 +64,9 @@ int main(int argc, char *argv[])
         std::shared_ptr<Scene> sc { load_scene(scene_file) };
 
         int width, height;
-        Pixel2D px_data { raytrace(sc, width, height, recursion_level, ssample_level) };
+        Pixel2D px_data { 
+            raytrace(sc, width, height, recursion_level, ssample_level, sshadow_level) 
+        };
 
         cimg_library::CImg<float> image(width, height, 1, NUM_CHANNELS, 0);
 

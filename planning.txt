@@ -40,6 +40,7 @@ Scene
     List of Object*
     List of Lights*
 
+    SOFTEN-LIGHTING 
 
 MAIN
     scene_file := [Get filename from cmd-line args]
@@ -276,35 +277,42 @@ OUT t0
 
 
 COMPUTE-COLOUR-REC
-IN point (coordinate), object, scene, depth
+IN point (coordinate), object, scene, depth, num_shadows
 OUT colour
     colour := 0
     FOR each light in scene
         l := NORMALIZE <- (light->pos - point)
-        poi, obj := FIRE-RAY <- point, l, scene
+        area_lights := SOFTEN <- light, l, num_shadows
+        FOR each light in area_lights
+            l := NORMALIZE <- (light->pos - point)
+            poi, obj := FIRE-RAY <- point, l, scene
 
-        IF poi = NO_COLLISION THEN
-            phong := CALC-PHONG <- point, light, object, scene->camera
+            IF poi = NO_COLLISION THEN
+                phong := CALC-PHONG <- point, light, object, scene->camera
 
-            IF depth > 0 THEN
-                r := REFLECT <- l, NORMALIZE <-(object.CALC-NORMAL <- point)
-                specular_ref := Vec3 { 0.0 }
-                collision := FIRE-RAY <- point, r, scene
-                IF collision != NO_COLLISION THEN
-                    specular_ref += COMPUTE-COLOUR-REC <- collision point, col.object, scene, depth - 1
-                ELSE
-                    specular_ref := (specular_ref == 0.0) ? BACKGROUND_COLOUR : specular_ref
-            ENDIF
+                IF depth > 0 THEN
+                    r := REFLECT <- l, NORMALIZE <-(object.CALC-NORMAL <- point)
+                    specular_ref := Vec3 { 0.0 }
+                    collision := FIRE-RAY <- point, r, scene
+                    IF collision != NO_COLLISION THEN
+                        specular_ref += COMPUTE-COLOUR-REC <- collision point, col.object, scene, depth - 1
+                    ELSE
+                        specular_ref := (specular_ref == 0.0) ? BACKGROUND_COLOUR : specular_ref
+                ENDIF
 
-            <Calculate specular transmission>
+                <Calculate specular transmission>
 
-            colour += phong + (obj->specular * specular_ref) <+ specular_trans>
+                colour += phong + (obj->specular * specular_ref) <+ specular_trans>
+        ENDFOR
+
+        colour := colour / num_shadows
+    ENDFOR
 
 
-CALC-PHONG
-IN pos, light, object, view
-OUT colour
-    l := NORMALIZE <- light->pos - pos
+    CALC-PHONG
+    IN pos, light, object, view
+    OUT colour
+        l := NORMALIZE <- light->pos - pos
     n := NORMALIZE <- object.GET-NORMAL(pos)
     v := NORMALIZE <- view->pos - pos
     r := REFLECT <- l, n
@@ -317,6 +325,7 @@ OUT colour
     spe := light->spe * object->spe * (v_angle ^ object->a)
 
     RETURN (amb + dif + spe)
+
 
 
 RENDER

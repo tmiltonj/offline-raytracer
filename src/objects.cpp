@@ -1,9 +1,14 @@
 #include <iostream>
 
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtc/constants.hpp>
+#include <glm/gtx/rotate_vector.hpp>
+
 #include "objects.hpp"
 #include "objloader.hpp"
 
 
+const float AREA_LIGHT_SPREAD { 0.5f };
 const float BIAS { 0.1f };
 
 
@@ -56,6 +61,25 @@ Light::Light(Vec3 pos, Vec3 amb, Vec3 dif, Vec3 spe)
     this->amb = amb;
     this->dif = dif;
     this->spe = spe;
+}
+
+
+
+void Light::soften(Vec3 l, Vec3 v, int num_shadows, std::vector<std::shared_ptr<Light>> &area_lights)
+{
+    //std::vector<std::shared_ptr<Light>> area_lights;
+
+    Vec3 norm { glm::normalize(glm::cross(l, v)) * (AREA_LIGHT_SPREAD / num_shadows) };
+    float rotation { 2.0f * glm::pi<float>() / num_shadows };
+    for (int i = 0; i < num_shadows; i++)
+    {
+        area_lights.push_back(
+            std::make_shared<Light>(
+                pos + norm, amb / (float)num_shadows, dif / (float)num_shadows, spe / (float)num_shadows
+            ));
+
+        norm = glm::rotate(norm, rotation, l) + glm::normalize(norm) * (AREA_LIGHT_SPREAD / num_shadows);
+    }
 }
 
 

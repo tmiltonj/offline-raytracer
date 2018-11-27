@@ -49,6 +49,7 @@ public:
     Vec3 amb, dif, spe;
 
     Light(Vec3 pos, Vec3 amb, Vec3 dif, Vec3 spe);
+    void soften(Vec3 l, Vec3 v, int num_shadows, std::vector<std::shared_ptr<Light>> &area_light);
 };
 
 

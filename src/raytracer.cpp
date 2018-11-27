@@ -3,6 +3,7 @@
 
 #include "raytracer.hpp"
 
+#include <iostream>
 
 const Vec3 BACKGROUND_COLOUR { 0.0 };
 const float GLOBAL_AMBIENCE { 0.2 };
@@ -12,7 +13,7 @@ const float BIAS { 0.1f };
 
 
 Pixel2D raytrace(std::shared_ptr<Scene> scene, int &width, int &height, 
-                    int recursion_level, int ssample_div)
+                    int recursion_level, int ssample_div, int num_shadows)
 {
     std::shared_ptr<Camera> cam { scene->camera };
     Vec3 cam_pos { cam->pos };
@@ -55,7 +56,7 @@ Pixel2D raytrace(std::shared_ptr<Scene> scene, int &width, int &height,
                         px_data[x][y] += BACKGROUND_COLOUR;
                     }
                     else {
-                        px_data[x][y] += compute_color(col, scene, cam_pos, recursion_level);
+                        px_data[x][y] += compute_color(col, scene, cam_pos, recursion_level, num_shadows);
                     }
                 }
             }
@@ -100,17 +101,25 @@ Collision fire_ray(Vec3 p0, Vec3 d, std::shared_ptr<Scene> scene)
 }
 
 
-Vec3 compute_color(Collision col, std::shared_ptr<Scene> scene, Vec3 view_pos, int rec_depth)
+Vec3 compute_color(Collision col, std::shared_ptr<Scene> scene, Vec3 view_pos, int rec_depth, int num_shadows)
 {
     Vec3 color, l, phong;
     color = Vec3 { 0.0 };
     //color = GLOBAL_AMBIENCE * col.obj->amb;
     
     std::shared_ptr<Light> light;
+    std::vector<std::shared_ptr<Light>> area_lights;
     Collision shadow_col;
     for (unsigned int i = 0; i < scene->lights.size(); i++)
     {
         light = scene->lights[i];
+        l = light->pos - col.coord;
+        light->soften(l, col.coord - view_pos, num_shadows, area_lights);
+    }
+
+    for (unsigned int j = 0; j < area_lights.size(); j++)
+    {
+        light = area_lights[j];
         l = light->pos - col.coord;
 
         shadow_col = fire_ray(col.coord, glm::normalize(l), scene);
@@ -131,7 +140,7 @@ Vec3 compute_color(Collision col, std::shared_ptr<Scene> scene, Vec3 view_pos, i
                 }
                 else
                 {
-                    specular_ref = compute_color(spec_col, scene, col.coord, rec_depth - 1);
+                    specular_ref = compute_color(spec_col, scene, col.coord, rec_depth - 1, num_shadows);
                 }
             }
             
