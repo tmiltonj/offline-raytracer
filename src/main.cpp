@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
     if (argc > 3)
     {
         try {
-            recursion_level = std::stoi(argv[2]);
+            recursion_level = std::stoi(argv[3]);
             std::cout << "Setting recursion level to " << recursion_level << std::endl;
         }
         catch (const std::invalid_argument &e){ std::cerr << "Invalid recursion level, using default (" << DEFAULT_RECURSION_LEVEL << ")\n"; }
@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
     if (argc > 4)
     {
         try {
-            ssample_level = std::stoi(argv[3]);
+            ssample_level = std::stoi(argv[4]);
             std::cout << "Setting supersampling level to " << ssample_level << "x" << std::endl;
         }
         catch (const std::invalid_argument &e){ std::cerr << "Invalid supersample level, using default (" << DEFAULT_SSAMPLE_LEVEL << ")\n"; }
@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
     if (argc > 5)
     {
         try {
-            sshadow_level = std::stoi(argv[4]);
+            sshadow_level = std::stoi(argv[5]);
             std::cout << "Setting number of soft shadows to " << sshadow_level << std::endl;
         }
         catch (const std::invalid_argument &e){std::cerr << "Invalid soft shadow level, using default (" << DEFAULT_SOFT_SHADOWS << ")\n";}
