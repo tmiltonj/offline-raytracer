@@ -7,7 +7,14 @@
 
 #include "raytracer.hpp"
 
+<<<<<<< HEAD
 
+=======
+const Vec3 BACKGROUND_COLOUR { 0.0 };
+const float GLOBAL_AMBIENCE { 0.2 };
+
+const float BIAS { 0.1f };
+>>>>>>> fba0a9db07a085e32e905f3338a13ffc3d8eb128
 
 const Vec3 BACKGROUND_COLOUR { 0.0 };
 
@@ -141,9 +148,14 @@ Collision fire_ray(Vec3 p0, Vec3 d, std::shared_ptr<Scene> scene)
  */
 Vec3 compute_color(Collision col, std::shared_ptr<Scene> scene, Vec3 view_pos, int rec_depth, int num_rays)
 {
+<<<<<<< HEAD
     Vec3 normal, color, l, temp_l, phong;
     normal = glm::normalize(col.obj->get_normal(col.coord));
     color = Vec3 { 0.0 };
+=======
+    Vec3 color, l, phong;
+    color = GLOBAL_AMBIENCE * col.obj->amb;
+>>>>>>> fba0a9db07a085e32e905f3338a13ffc3d8eb128
     
     std::shared_ptr<Light> light;
     Collision shadow_col;
@@ -153,6 +165,7 @@ Vec3 compute_color(Collision col, std::shared_ptr<Scene> scene, Vec3 view_pos, i
     {
         light = scene->lights[i];
         l = light->pos - col.coord;
+<<<<<<< HEAD
 
         // Scattering for soft shadows
         float rotation, mag;
@@ -203,10 +216,23 @@ Vec3 compute_color(Collision col, std::shared_ptr<Scene> scene, Vec3 view_pos, i
             // Attenuate by amount point is in shadow
             float shadow_amount { (float)in_shadow / (float)num_rays };
             color += (1 - shadow_amount) * (phong + (SPECULARITY * col.obj->spe * specular_ref));
+=======
+
+        shadow_col = fire_ray(col.coord, glm::normalize(l), scene);
+
+        phong = calc_phong(light, col.obj, col.coord);
+        color += phong;
+
+        if (shadow_col == NO_COLLISION || glm::length(l) < glm::length(col.coord - shadow_col.coord))
+        {
+            phong = calc_phong(light, col.obj, col.coord);
+            color += phong;
+>>>>>>> fba0a9db07a085e32e905f3338a13ffc3d8eb128
         }
     }
 
-    return Vec3 { fmin(color.x, 1.0), fmin(color.y, 1.0), fmin(color.z, 1.0) };
+    //return Vec3 { fmin(color.x, 1.0), fmin(color.y, 1.0), fmin(color.z, 1.0) };
+    return color;
 }
 
 
@@ -217,7 +243,11 @@ Vec3 calc_phong(std::shared_ptr<Light> light, std::shared_ptr<Object> obj, Vec3 
     Vec3 l, n, v, r;
     l = glm::normalize(light->pos - pos);
     n = glm::normalize(obj->get_normal(pos));
+<<<<<<< HEAD
     v = glm::normalize(view_pos - pos);
+=======
+    v = glm::normalize(pos); // Since camera is always at 0,0,0 (LAZY)
+>>>>>>> fba0a9db07a085e32e905f3338a13ffc3d8eb128
     r = glm::reflect(l, n);
 
     float l_angle, v_angle;

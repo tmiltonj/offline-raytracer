@@ -1,9 +1,12 @@
 #include <iostream>
+<<<<<<< HEAD
 #include <limits>
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtc/constants.hpp>
 #include <glm/gtx/rotate_vector.hpp>
+=======
+>>>>>>> fba0a9db07a085e32e905f3338a13ffc3d8eb128
 
 #include "objects.hpp"
 #include "objloader.hpp"
@@ -216,7 +219,10 @@ Object::Object(amb, dif, spe, shi)
 
 
 
+<<<<<<< HEAD
 // Constructs a Mesh from a vertex list, used to make triangles
+=======
+>>>>>>> fba0a9db07a085e32e905f3338a13ffc3d8eb128
 Mesh::Mesh(std::vector<Vec3> vertices, Vec3 amb, Vec3 dif, Vec3 spe, float shi) :
 Object::Object(amb, dif, spe, shi)
 {
@@ -233,19 +239,29 @@ Object::Object(amb, dif, spe, shi)
         Vec3 u, w;
         u = v[1] - v[0];
         w = v[2] - v[0];
+<<<<<<< HEAD
         last_col_normal = glm::cross(u, w);
+=======
+        normal = glm::cross(u, w);
+>>>>>>> fba0a9db07a085e32e905f3338a13ffc3d8eb128
     }
 
 }
 
 
 
+<<<<<<< HEAD
 /* Mesh's normal is updated when a collision is checked for, this saves us from needing to
  * recalculate the normal again
  */
 Vec3 Mesh::get_normal(Vec3 point)
 { 
     return last_col_normal; 
+=======
+Vec3 Mesh::get_normal(Vec3 point)
+{ 
+    return normal; 
+>>>>>>> fba0a9db07a085e32e905f3338a13ffc3d8eb128
 }
 
 
@@ -307,5 +323,12 @@ float Mesh::check_collision(Vec3 p0, Vec3 d)
         }
     }
 
+<<<<<<< HEAD
     return (t0 < std::numeric_limits<float>::infinity()) ? t0 : NO_INTERSECT;
+=======
+    if (t0 < std::numeric_limits<float>::infinity())
+        return t0;
+    else
+        return -1.0;
+>>>>>>> fba0a9db07a085e32e905f3338a13ffc3d8eb128
 }
