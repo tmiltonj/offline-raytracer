@@ -13,7 +13,6 @@ const int NUM_CHANNELS { 3 };
 const int NUM_ARGS { 1 };
 
 
-<<<<<<< HEAD
 // Defaults for cmd-line arguments
 const int MIN_ARGS { 1 };
 
@@ -32,18 +31,6 @@ int main(int argc, char *argv[])
         return 1;
     }
     std::string scene_file { argv[1] };
-=======
-int main(int argc, char *argv[])
-{
-    if (argc < NUM_ARGS + 1)
-        return 1;
-
-    std::string scene_file { argv[1] };
-    
-    std::shared_ptr<Scene> sc { 
-        load_scene(scene_file)
-        };
->>>>>>> fba0a9db07a085e32e905f3338a13ffc3d8eb128
 
 
     std::string output_filename;
